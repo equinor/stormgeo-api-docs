@@ -1,0 +1,48 @@
+name: OpenAPI prepare for APIM
+# API Management does not support examples in the OpenAPI contract (ref https://docs.microsoft.com/en-us/azure/api-management/api-management-api-import-restrictions)
+# Therefore, we use a python script to remove the examples and save the new file as openapi-contract/api-contract-azure-apim-compatible.yaml
+
+on:
+  #Triggered manually
+  workflow_dispatch:
+  # Triggered when github action in openapi_prepare_for_prism.yml is completed (regardless of result)
+  workflow_run:
+    workflows: ["OpenAPI prepare for Prism proxy validation"]
+    types:
+      - completed
+  
+  # Not used anymore. If we use push: trigger we get errors in openapi_prepare_for_prism.yml due to new commits
+  #push:
+  #  paths:
+  #    - 'openapi-contract/*.yaml'
+  #    - '.github/workflows/openapi_prepare_for_apim.yml'
+jobs:
+  scrub-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pyyaml
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: run main.py
+        run: |
+          python openapi-contract/generated/make_azure_apim_compatible.py openapi-contract/api-contract.yaml
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'auto: committed OAS-file compatible with Azure APIM'
+          commit_user_name: Github actions bot
+          commit_user_email: dapa@equinor.com

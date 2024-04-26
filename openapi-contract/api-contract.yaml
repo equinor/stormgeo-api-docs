@@ -1,0 +1,874 @@
+openapi: 3.0.1
+info:
+  title: 'Timewriting API'
+  description: |
+    The Timewriting API is an open API covering the HR area.
+    It's an example API used to demonstrate the [api-first-workbench](https://github.com/equinor/api-first-workbench) and has not been implemented.
+
+    This document describes release v1.0.1. We recommend using documentation published at https://equinor.github.io/api-first-workbench as it provides the best developer experience.
+    Information on the next release v1.1.0 is available at [this page](https://equinor.github.io/api-first-workbench/latest/)
+
+    # Introduction
+    The API is designed and built according to [Equinor's API strategy](https://github.com/equinor/api-strategy).
+
+    The API is documented in OpenAPI 3.0 format and follows REST principles.
+
+    ## Terminology
+    The API will use common terminology used across the Oil&Gas industry.
+    
+    ## API versioning
+    `api-version` must be present in all request as part of the query string. **Requests without API version will be rejected with a HTTP 404 response code**. The latest api-version is v1.
+    
+    The `api-version` will stay stable over time as the API follows the principles of [API evolution](https://apisyouwonthate.com/blog/api-evolution-for-rest-http-apis)
+    
+    ## Subscription key
+    Subscription key must be created from [Equinor's API Portal](https://api.equinor.com/products/corporate) for the consumer application  and each request must have the HTTP header `Ocp-Apim-Subscription-Key` present with this value.
+    
+    ## Authentication and authorization overview
+    The user executing the API requests will need to authenticate with OAuth 2.0 authorization code flow with Equinor Azure AD as the identity provider. 
+
+    # Modelling of resources
+    ## Resources
+    The resource will be named according to common terminology used across the Oil&Gas industry (for example Norsok standard NS-EN 13306 and ISO 14224).
+    
+    Example of resources are `/time-entries` and `/cost-objects`.
+    
+    ## Resource keys
+    Resources keys will indicate the resource type as part of the name. 
+    Example: `timeEntryId` and `costObjectId`.
+
+    ## Dates
+    All date and time information are based on UTC (Universal Time Coordinated) and formatted according to [RFC3339](https://www.ietf.org/rfc/rfc3339.txt)
+
+    This also applies to durations, such as 1 day or 2 hours, which are encoded as `P0Y0M1DT0H0M0S` and `P0Y0M0DT2H0M0S`.
+    
+    These values are easily compatible with time libraries such as [moment.js library](https://momentjs.com/docs/).
+    
+    # Modelling of endpoints
+    ## Operation - Lookup
+    Lookup operations return a single instance for the resource based on the key.
+    
+    The resource may have related data which may or may not be relevant for a client. In order to indicate which related data to include, the lookup operation may provide `include-...` query string boolean options.
+    Example: `include-time-entries`
+    
+    ## Operation - Search/Filter
+    Clients need to retrieve a subset of all resources for an endpoint. Usually, the criteria are non-trivial and in many case are not direct properties of the resource. REST does not provide a well-defined pattern for these types of requests. 
+    
+    Our approach, is to provide predefined filters with parameters. Each filter is documented in the OpenAPI specification.
+    
+    ## Operation - Update
+    Update operations for resources will utilize a sub-set of the JSON Patch proposed standard. JSON Patch is described in [RFC 6902](https://tools.ietf.org/html/rfc6902) with a user-friendly version at [http://jsonpatch.com/](http://jsonpatch.com/). 
+    
+    Our goals with using JSON Patch is to focus on the intent of the update and avoid common pitfalls for the client. The common pitfalls we avoid with JSON Patch are: 
+    1. Clients inadvertently resetting properties of a resource to an empty value. This due to the client mistakenly sending all properties of a resource in a HTTP PATCH request with some of them having an initial value.
+    1. Clients inadvertently overwriting changes made by other users directly in the back-end system. This due to client mistakenly have provided properties which have not been changed in a HTTP PATCH request.
+    
+    Using JSON Patch is straightforward. 
+    - Set the content-type to `application/json-patch+json`. 
+    - In the body, send an array of JSON Patch operations. Typically, one element pr property to be update for the resource
+    
+    As part of the OpenAPI documentation, we will provide concrete examples for all update operation. In addition, the schema definiton for the request body defines which resource properties can be updated.
+    
+    Example of JSON Patch request body which replaces the value of the properties title and text:
+    ```
+    [
+      {
+        "op": "replace",
+        "path": "/comment ",
+        "value": "New comment"
+      },
+      {
+        "op": "replace",
+        "path": "/hours",
+        "value": 4
+      }
+    ]
+    ```
+    
+    ## HTTP Response codes
+    HTTP response codes will follow established best practice for REST services and will be documented in the OpenAPI specification. 
+    
+    Below is a list of status codes used in the API which the client should handle. 
+    Common: 
+    * 400 Bad Request - The request is invalid. For example missing parameters in the query string
+    * 401 Unauthorized - The request did not include an authentication token or the authentication token was expired or invalid
+    * 403 Forbidden - User does not have sufficient permissions
+    * 405 Method not allowed - HTTP verb not supported for requested resource
+    * 500 Internal Server Error - Sorry, an unexpected error occured on our side. Let's us know and we'll get around to fix it
+    * 503 Service unavailable - API or a service it depends on is currently not available. 
+    
+    Read - HTTP GET:
+    * 200 OK - The request completed successfully
+    * 404 Not Found - The resource does not exist or an non-existing endpoint has been called
+    
+    Create - HTTP POST: 
+    * 201 Created - Create of resource was successful and resource is returned in body
+    * 400 Bad Request - The resource provided in the body is not according to specification
+    * 409 Conflict - The creation of this resource is in conflict with an already existing resources
+    
+    Create - HTTP PUT:
+    * 204 No Content - Request successful but no resource returned in body
+    
+    Update - HTTP PATCH: 
+    * 200 OK - Update of resource was successful and resource is returned in body
+    * 400 Bad Request - The resource properties to update is not according to specification
+    * 409 Conflict - The update of this resource is in conflict with an already existing resources
+    
+    Delete - HTTP DELETE: 
+    * 204 No Content - Request successful but no resource returned in body
+    * 409 Conflict - The deletion of this resource is not possible
+    
+    # Deprecation
+    ## Deprecation policy
+    The API will use the principles of [API evolution](https://apisyouwonthate.com/blog/api-evolution-for-rest-http-apis) instead of introducing a new api-version on every breaking change.
+    
+    In order to achieve this, endpoints, query parameters and resource properties can become deprecated and will be marked so in the OpenAPI specification.
+    
+    In general, depcrated properties will be removed after 3 months.
+    If a client uses a deprecated endpoint or query parameter, the API will in the response provide a Sunset HTTP header
+    `Sunset: Sat, 15 May 2021 12:59:59 GMT` representing the removal date for the deprecated feature as specified in [RFC8594](https://tools.ietf.org/html/rfc8594). In addition, a HTTP header `Link: <https://equinor.github.io/maintenance-api-docs/#section/Deprecation>; rel="sunset"` will be provided to pointing to relevant documentation.
+    
+    Clients must monitor these messages and take corrective actions.
+    
+    ## Endpoints with deprecation
+    None
+
+    # Feature requests
+    Feature requests are welcomed and can be submitted through: 
+  version: "1.0.1"
+
+  contact:
+    name: Maintenance API Team - GBS IT PLA POM
+    url: https://github.com/equinor/api-first-workbench
+  
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/
+
+  x-logo:
+    url: 'https://equinor.github.io/api-first-workbench/img/logo.png'
+    altText: Maintenance API logo
+  
+externalDocs:
+  description: API documentation
+  url: 'https://equinor.github.io/api-first-workbench'
+  
+servers:
+  - url: https://api-dev.gateway.equinor.com/api-first-workbench
+    description: Development environment
+
+security:
+  - bearerAuth: [ ]
+  - apiKey: [ ]
+
+tags:
+  - name: New endpoints
+    description: |
+      Endpoints which are introduces in the current version
+  - name: Modified endpoints
+    description: |
+      Endpoints which have been modified in the current version    
+  - name: Calendar
+    description: |
+      Calendar represent a date range to perform time writing for based on expecations in the work scehdule
+  - name: Time entries
+    description: |
+      Time entry represent hours registered on a specific day towards a cost object
+  - name: Cost objects
+    description: |
+      Cost object represent how the cost for each time entry is allocated
+
+x-tagGroups:
+  - name: Changes in 1.0.1
+    tags:
+      - New endpoints
+      - Modified endpoints
+  - name: Calendar
+    tags:
+      - Calendar
+  - name: Time entries
+    tags:
+      - Time entries
+  - name: Cost objects
+    tags:
+      - Cost objects     
+
+paths:
+  /calendar/{start-date}/{end-date}:
+    get:
+      operationId: LookupCalendarByDateRange
+      summary: Lookup calendar for a date range
+      description: |
+        ### Overview
+        TBD
+      tags:
+        - Calendar
+      parameters:
+        - in: path
+          name: start-date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2021-11-01'
+        - in: path
+          name: end-date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2021-11-01'            
+        - in: query
+          name: include-time-entries
+          description: Include all time entries in the calendar
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+          description: Request successful
+        '400':
+          description: Bad request (for example if start-date is before end-date)
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'          
+        default:
+          description: Unexpected error
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'           
+
+  /calendar/{start-date}/{end-date}/time-entries:
+    put:
+      operationId: PutTimeEntriesForCalendar
+      summary: Perform time writing for calendar (overwrites existing time entries)
+      description: |
+        ### Overview
+        Perform time writing by supplying all time entries for a given calendar period.
+        It's also possible to change individual time entries via endpoints `POST /time-entries`,`PATCH /time-entries/{time-entry-id}` and `DELETE /time-entries/{time-entry-id}`.
+        ### Important information
+        This operation overwrites all existing time writing in the given calendar period.
+        If there are errors for one or more of the time entries, none of them will be updated.
+      tags:
+        - Calendar
+        - New endpoints
+      parameters:
+        - in: path
+          name: start-date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2021-11-01'
+        - in: path
+          name: end-date
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2021-11-01'
+      requestBody:
+        description: Time entries
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TimeEntryCreate'
+            examples:
+              calendar-time-entries-put:
+                $ref: '#/components/examples/calendar-time-entries-put'
+      responses:
+        '204':
+          description: Successful - No content. Lookup result using `GET /calendar/{start-date}/{end-date}`
+        '400':
+          description: Bad request (for example invalid costObjectId)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+                
+  /time-entries/{time-entry-id}:                
+    get:
+      operationId: LookupTimeEntry
+      summary: Lookup single time entry
+      description: |
+        ### Overview
+        Lookup a single time entry. 
+        Time entry represent hours registered on a specific day towards a cost object.
+        
+        ### Important information
+        Consider using the endpoint `/calendar/{start-date}/{end-date}` for retrieving all time entries in the date range.
+      tags:
+        - Time entries
+      parameters:
+        - in: path
+          name: time-entry-id
+          required: true
+          schema: 
+            type: string
+            example: '154632395'
+      responses:
+        '200':
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+          description: Request successful and time entry updated
+        '404':
+          description: Time entry does not exist for logged in user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundDetails'         
+        default:
+          description: Unexpected error
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    patch:
+      operationId: UpdateTimeEntry
+      summary: Update single time entry
+      description: |
+        ## Overview
+        Update single time entry.
+        
+        Supports:
+        - Update comment
+        - Update hours
+        - Update date
+      tags:
+        - Time entries
+      parameters:
+        - in: path
+          name: time-entry-id
+          required: true
+          schema: 
+            type: string
+            example: '154632395'
+      requestBody:
+        description: Time entry update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryJsonPatch'
+            examples:
+              time-entries-update-hours:
+                $ref: '#/components/examples/time-entries-update-hours'  
+              time-entries-update-comment:
+                $ref: '#/components/examples/time-entries-update-comment'  
+              time-entries-update-date:
+                $ref: '#/components/examples/time-entries-update-date'                  
+              time-entries-update-all:
+                $ref: '#/components/examples/time-entries-update-all'             
+      responses:
+        '200':
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+          description: Request successful and time entry updated
+        '400':
+          description: Bad request - For example too many hours
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Not found - Time entry does not exist for logged in user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundDetails'
+        '409':
+          description: Conflict - For example if the time entry is too far back in time and cannot be updated
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'                 
+        default:
+          description: Unexpected error
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+    delete:
+      operationId: DeleteTimeEntry
+      summary: Delete single time entry
+      description: |
+        ## Overview
+        Delete single time entry.
+      tags:
+        - Time entries
+      parameters:
+        - in: path
+          name: time-entry-id
+          required: true
+          schema: 
+            type: string
+            example: '154632395'
+      responses:
+        '204':
+          description: No content - Time entry deleted
+        '404':
+          description: Not found - Time entry does not exist for logged in user
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict - For example if the time entry is too far back in time and cannot be deleted
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'                 
+        default:
+          description: Unexpected error
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'                
+
+  /time-entries:
+    post:
+      operationId: CreateTimeEntry
+      summary: Create single time entry
+      tags:
+        - Time entries
+        - New endpoints
+      description: |
+        ### Overview
+        Create single time entry for logged on user. 
+        
+        Clients should expect end users to have prexisting knowledge of the cost object to use for a time entry, but can assist them by providing suggestions based on earlier time entries from endpoint `/calendar/{start-date}/{end-date}`. A general search for cost objects used in the company will not be provided as it increases the risk for wrong time writing.
+        
+        The time entry will need approval by the task owner of the cost object after registration. It's recommended to provide a comment where possible in order ease the approval process. If the approver does not have enough information, the time entry will be sent back to the end user through the workflow inbox of the ERP system.
+        
+        The client is recommended to verify that the cost object exist and is open for time writing through the endpoint `/cost-objects/{cost-object-id}`.
+        
+        ### Important information
+        The endpoint does not currently support clock times. If logged on user is configured for clock times, the request will fail with a `409 - Conflict` error.
+        
+        The request will fail with a `409 - Conflict` error if the date is more than 3 months in the past.
+      requestBody:
+        description: Time entry update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeEntryCreate'
+            examples:
+              time-entry-create-wbs:
+                $ref: '#/components/examples/time-entry-create-wbs'
+              time-entry-create-network:
+                $ref: '#/components/examples/time-entry-create-network'                
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeEntry'
+          description: Created - Time entry created successfully
+        '400':
+          description: Bad request - For example more than hours in request is larger than 24
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict - For example if the date is too far back in time and cannot be used
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+
+  /cost-objects/{cost-object-id}:
+    get:
+      operationId: LookupCostObject
+      summary: Lookup single cost object
+      description: |
+        ### Overview
+        Lookup a single cost object. 
+        
+        The cost object is used when creating a new time entry.
+      tags:
+        - Cost objects
+      parameters:
+        - in: path
+          name: cost-object-id
+          required: true
+          schema:
+            type: string
+            example: 'C.BAX.30.xxx'
+      responses:
+        '200':
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostObject'
+          description: Request successful
+        '404':
+          description: Not found - Cost object does not exist
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundDetails'        
+        default:
+          description: Unexpected error
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails' 
+
+components:
+  parameters:
+    apiVersion:
+      name: api-version
+      in: query
+      required: true
+      description: api-version must be present in all request as part of the query string
+      schema:
+        type: string
+        enum: ['v1']
+
+  securitySchemes:
+    bearerAuth:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.windows.net/common/oauth2/authorize?resource=0e595101-1f08-4ce0-8684-148b2e2b8e18
+          tokenUrl: https://login.microsoftonline.com/common/oauth2/token
+    apiKey:
+      type: apiKey
+      description: "Subscription key created from https://api.equinor.com"
+      name: ocp-apim-subscription-key
+      in: header
+
+  schemas:
+    ProblemDetails:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Reference to HTTP status definition
+              example: 'https://tools.ietf.org/html/rfc7231#section-6.5.1'
+              nullable: true
+            title:
+              type: string
+              description: Description of error
+              example: 'One or more validation errors occurred.'
+              nullable: true
+            status:
+              type: integer
+              description: HTTP status code
+              example: 400
+              format: int32
+              nullable: true
+            traceId:
+              type: string
+              description: Request id to be used for support
+              example: '00-d9dc368e6caec4449a64e798dad1b5b2-7d82bdde82c9474a-00'
+            errors:
+              type: object
+              description: Detailed information about error
+              additionalProperties:
+                type: object
+                additionalProperties: false
+              nullable: true
+              readOnly: true
+          additionalProperties: false
+    NotFoundDetails:
+          type: object
+          properties:
+            type:
+              type: string
+              description: Reference to HTTP status definition
+              example: 'https://tools.ietf.org/html/rfc7231#section-6.5.4'
+              nullable: true
+            title:
+              type: string
+              description: Description of error
+              example: 'Not Found'
+              nullable: true
+            status:
+              type: integer
+              description: HTTP status code
+              example: 404
+              format: int32
+              nullable: true
+            traceId:
+              type: string
+              description: Request id to be used for support
+              example: '00-d9dc368e6caec4449a64e798dad1b5b2-7d82bdde82c9474a-00'
+          additionalProperties: false
+          
+    Calendar:
+      type: object
+      properties:  
+        startDate:
+          type: string
+          format: date
+          description: Start date of the calendar. Key of calendar together with the endDate
+          example: "2021-11-04"
+        endDate:
+          type: string
+          format: date
+          description: End date of the calendar. Key of calendar together with the startDate
+          example: "2021-11-10"
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarDay'
+            
+    CalendarDay:
+      type: object
+      properties:  
+        date:
+          type: string
+          format: date
+          description: CalendarDay date
+          example: "2019-05-22"    
+        workSchedule:
+          type: number
+          format: double
+          description: Expected number of timewriting hours for this day
+          minimum: 0
+          maximum: 24
+          example: 8.0
+        sumHours: 
+          type: number
+          format: double
+          description: Actual number of hours for all timewriting on this day
+          minimum: 0
+          maximum: 24
+          example: 8.0
+        timeEntries:
+          type: array
+          items: 
+            $ref: '#/components/schemas/TimeEntry'
+    TimeEntry:
+      type: object
+      properties:
+        timeEntryId: 
+          type: string
+          description: Unique id for time entry
+          example: '154632395'
+        date:
+          type: string
+          format: date
+          description: Time entry date
+          example: '2021-11-04'
+        hours: 
+          type: number
+          format: double
+          description: Number of hours worked
+          minimum: 0
+          maximum: 24
+          example: 7.5
+        costObjectTypeId:
+          $ref: '#/components/schemas/CostObjectTypes'
+        costObjectId:
+          type: string
+          description: Cost object identifier
+          example: "C.BAX.30.xxx"
+        costSubObjectId:
+          type: string
+          description: Secondary cost object identifier. Not use for all cost object types.
+          example: ""
+        costObjectDescription:
+          type: string
+          description: Description of the cost object
+          example: "Project XYZ"
+        comment:
+          type: string
+          description: Comment for time entry          
+
+    TimeEntryCreate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Time entry date
+          example: '2021-11-04'
+        hours:
+          type: number
+          format: double
+          description: Number of hours worked
+          minimum: 0
+          maximum: 24
+          example: 8.0
+        costObjectTypeId:
+          $ref: '#/components/schemas/CostObjectTypes'
+        costObjectId:
+          type: string
+          description: Cost object identifier
+          example: 'C.BAX.30.xxx'
+        costSubObjectId:
+          type: string
+          description: Secondary cost object identifier. Not use for all cost object types.
+          example: '0100'
+        comment:
+          type: string
+          description: Comment for time entry
+          example: 'Analysis of task xyz'
+          maxLength: 40
+      required:
+        - date
+        - hours
+        - costObjectTypeId
+        - costObjectId
+        
+        
+    TimeEntryJsonPatch:
+      type: array
+      items:
+        type: object
+        properties:
+          op: 
+            type: string
+            description: |
+              JSON Patch operation according to RFC6902.
+            enum: ['replace']
+            example: 'replace'
+          path: 
+            type: string
+            description: 'Path indicating the property to be impacted by the operation'
+            enum: ['/date', '/hours','/comment']
+          value: 
+            oneOf:
+              - type: string
+              - type: number
+            description: |
+              Value to be assigned to a resource property based on the operation and path.
+            example: '2021-11-11'        
+          
+    CostObjectTypes:
+      description: Type of cost object
+      type: string
+      enum:
+        - 'wbs'
+        - 'network'
+        
+    CostObject:
+      type: object
+      properties:
+        costObjectId: 
+          type: string
+          description: Cost object id
+          example: "9000000"
+        type:
+          $ref: '#/components/schemas/CostObjectTypes'
+        costObject:
+          type: string
+          description: Description of the cost object
+          example: "Project XYZ"
+        isOpenForTimeWriting:
+          type: boolean
+          description: Is the cost object open for time writing
+        subObjects: 
+          type: array
+          description: List of subobjects for cost object if exist
+          items: 
+            $ref: '#/components/schemas/CostSubObject'
+            
+    CostSubObject:
+      type: object
+      properties:
+        subCostObjectId: 
+          type: string
+          description: Cost subobject id
+          example: "0100"
+        subCostObject:
+          type: string
+          description: Description of the cost subobject
+          example: "Implement API"
+        isOpenForTimeWriting:
+          type: boolean
+          description: Is the cost subobject open for time writing        
+  examples:
+    time-entries-update-hours: 
+      summary: Update hours
+      value: 
+        - op: 'replace'
+          path: '/hours'
+          value: 7.5
+    time-entries-update-date: 
+      summary: Move time entry to other date
+      value: 
+        - op: 'replace'
+          path: '/date'
+          value: '2021-11-13'
+    time-entries-update-comment: 
+      summary: Update comment
+      value: 
+        - op: 'replace'
+          path: '/comment'
+          value: 'Project ZYX'
+    time-entries-update-all: 
+      summary: Update all
+      value: 
+        - op: 'replace'
+          path: '/date'
+          value: '2021-11-13'
+        - op: 'replace'
+          path: '/comment'
+          value: 'Project ZYX'
+        - op: 'replace'
+          path: '/hours'
+          value: 7.5
+    time-entry-create-wbs:
+      summary: Create time entry (wbs)
+      value: 
+        date: '2021-11-04'
+        hours: 8
+        costObjectTypeId: 'wbs'
+        costObjectId: 'C.BAX.30.xxx'
+        comment: 'Analysis of task xyz'
+    time-entry-create-network:
+      summary: Create time entry (network)
+      value: 
+        date: '2021-11-05'
+        hours: 4.5
+        costObjectTypeId: 'network'
+        costObjectId: '9000000'
+        costSubObjectId: '10'
+        comment: 'Analysis of task xyz'
+    calendar-time-entries-put:
+      summary: Set time entries for period
+      value: 
+        - date: '2021-11-04'
+          hours: 8
+          costObjectTypeId: 'wbs'
+          costObjectId: 'C.BAX.30.xxx'
+          comment: 'Analysis of task xyz'      
+        - date: '2021-11-05'
+          hours: 4.5
+          costObjectTypeId: 'network'
+          costObjectId: '9000000'
+          costSubObjectId: '10'
+          comment: 'Analysis of task xyz'
