@@ -1,845 +1,1431 @@
 components:
-  examples:
-    calendar-time-entries-put:
-      summary: Set time entries for period
-      value:
-      - comment: Analysis of task xyz
-        costObjectId: C.BAX.30.xxx
-        costObjectTypeId: wbs
-        date: '2021-11-04'
-        hours: 8
-      - comment: Analysis of task xyz
-        costObjectId: '9000000'
-        costObjectTypeId: network
-        costSubObjectId: '10'
-        date: '2021-11-05'
-        hours: 4.5
-    time-entries-update-all:
-      summary: Update all
-      value:
-      - op: replace
-        path: /date
-        value: '2021-11-13'
-      - op: replace
-        path: /comment
-        value: Project ZYX
-      - op: replace
-        path: /hours
-        value: 7.5
-    time-entries-update-comment:
-      summary: Update comment
-      value:
-      - op: replace
-        path: /comment
-        value: Project ZYX
-    time-entries-update-date:
-      summary: Move time entry to other date
-      value:
-      - op: replace
-        path: /date
-        value: '2021-11-13'
-    time-entries-update-hours:
-      summary: Update hours
-      value:
-      - op: replace
-        path: /hours
-        value: 7.5
-    time-entry-create-network:
-      summary: Create time entry (network)
-      value:
-        comment: Analysis of task xyz
-        costObjectId: '9000000'
-        costObjectTypeId: network
-        costSubObjectId: '10'
-        date: '2021-11-05'
-        hours: 4.5
-    time-entry-create-wbs:
-      summary: Create time entry (wbs)
-      value:
-        comment: Analysis of task xyz
-        costObjectId: C.BAX.30.xxx
-        costObjectTypeId: wbs
-        date: '2021-11-04'
-        hours: 8
-  parameters:
-    apiVersion:
-      description: api-version must be present in all request as part of the query
-        string
-      in: query
-      name: api-version
-      required: true
-      schema:
-        enum:
-        - v1
-        type: string
   schemas:
-    Calendar:
-      properties:
-        days:
-          items:
-            $ref: '#/components/schemas/CalendarDay'
-          type: array
-        endDate:
-          description: End date of the calendar. Key of calendar together with the
-            startDate
-          example: '2021-11-10'
-          format: date
-          type: string
-        startDate:
-          description: Start date of the calendar. Key of calendar together with the
-            endDate
-          example: '2021-11-04'
-          format: date
-          type: string
-      type: object
-    CalendarDay:
-      properties:
-        date:
-          description: CalendarDay date
-          example: '2019-05-22'
-          format: date
-          type: string
-        sumHours:
-          description: Actual number of hours for all timewriting on this day
-          example: 8.0
-          format: double
-          maximum: 24
-          minimum: 0
-          type: number
-        timeEntries:
-          items:
-            $ref: '#/components/schemas/TimeEntry'
-          type: array
-        workSchedule:
-          description: Expected number of timewriting hours for this day
-          example: 8.0
-          format: double
-          maximum: 24
-          minimum: 0
-          type: number
-      type: object
-    CostObject:
-      properties:
-        costObject:
-          description: Description of the cost object
-          example: Project XYZ
-          type: string
-        costObjectId:
-          description: Cost object id
-          example: '9000000'
-          type: string
-        isOpenForTimeWriting:
-          description: Is the cost object open for time writing
-          type: boolean
-        subObjects:
-          description: List of subobjects for cost object if exist
-          items:
-            $ref: '#/components/schemas/CostSubObject'
-          type: array
-        type:
-          $ref: '#/components/schemas/CostObjectTypes'
-      type: object
-    CostObjectTypes:
-      description: Type of cost object
-      enum:
-      - wbs
-      - network
-      type: string
-    CostSubObject:
-      properties:
-        isOpenForTimeWriting:
-          description: Is the cost subobject open for time writing
-          type: boolean
-        subCostObject:
-          description: Description of the cost subobject
-          example: Implement API
-          type: string
-        subCostObjectId:
-          description: Cost subobject id
-          example: '0100'
-          type: string
-      type: object
-    NotFoundDetails:
+    Forecast:
       additionalProperties: false
       properties:
-        status:
-          description: HTTP status code
-          example: 404
+        data:
+          nullable: true
+        issueTime:
+          format: date-time
+          nullable: true
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        timeResolution:
+          nullable: true
+          type: string
+        type:
+          nullable: true
+          type: string
+        units:
+          additionalProperties:
+            type: string
+          nullable: true
+          type: object
+      type: object
+    Parameter:
+      additionalProperties: false
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          nullable: true
+          type: string
+        unit:
+          $ref: '#/components/schemas/Unit'
+      type: object
+    ParameterDto:
+      additionalProperties: false
+      properties:
+        name:
+          nullable: true
+          type: string
+        unit:
+          nullable: true
+          type: string
+      type: object
+    ParameterSetDto:
+      additionalProperties: false
+      properties:
+        description:
+          example: A description of the parameter set (Optional).
+          nullable: true
+          type: string
+        id:
           format: int32
           nullable: true
           type: integer
-        title:
-          description: Description of error
-          example: Not Found
+        name:
+          example: Parameter set name
           nullable: true
           type: string
-        traceId:
-          description: Request id to be used for support
-          example: 00-d9dc368e6caec4449a64e798dad1b5b2-7d82bdde82c9474a-00
+        parameters:
+          example:
+          - windspeed
+          - winddirection
+          - temperature
+          items:
+            type: string
+          nullable: true
+          type: array
+      type: object
+    ParameterSetPostDto:
+      additionalProperties: false
+      properties:
+        description:
+          example: A description of the parameter set (Optional).
+          nullable: true
           type: string
-        type:
-          description: Reference to HTTP status definition
-          example: https://tools.ietf.org/html/rfc7231#section-6.5.4
+        name:
+          example: Parameter set name
+          nullable: true
+          type: string
+        parameters:
+          example:
+          - windspeed
+          - winddirection
+          - temperature
+          items:
+            type: string
+          nullable: true
+          type: array
+      type: object
+    Point:
+      additionalProperties: false
+      properties:
+        customerId:
+          format: int32
+          type: integer
+        expiry:
+          format: date-time
+          type: string
+        id:
+          format: int32
+          type: integer
+        lastUpdatedForecast:
+          format: date-time
+          nullable: true
+          type: string
+        latitude:
+          format: double
+          type: number
+        longitude:
+          format: double
+          type: number
+        name:
+          nullable: true
+          type: string
+        timeResolution:
+          nullable: true
+          type: string
+        timeZone:
           nullable: true
           type: string
       type: object
     ProblemDetails:
-      additionalProperties: false
+      additionalProperties: {}
       properties:
-        errors:
-          additionalProperties:
-            additionalProperties: false
-            type: object
-          description: Detailed information about error
+        detail:
           nullable: true
-          readOnly: true
-          type: object
+          type: string
+        instance:
+          nullable: true
+          type: string
         status:
-          description: HTTP status code
-          example: 400
           format: int32
           nullable: true
           type: integer
         title:
-          description: Description of error
-          example: One or more validation errors occurred.
           nullable: true
-          type: string
-        traceId:
-          description: Request id to be used for support
-          example: 00-d9dc368e6caec4449a64e798dad1b5b2-7d82bdde82c9474a-00
           type: string
         type:
-          description: Reference to HTTP status definition
-          example: https://tools.ietf.org/html/rfc7231#section-6.5.1
           nullable: true
           type: string
       type: object
-    TimeEntry:
+    Threshold:
+      additionalProperties: false
       properties:
-        comment:
-          description: Comment for time entry
-          type: string
-        costObjectDescription:
-          description: Description of the cost object
-          example: Project XYZ
-          type: string
-        costObjectId:
-          description: Cost object identifier
-          example: C.BAX.30.xxx
-          type: string
-        costObjectTypeId:
-          $ref: '#/components/schemas/CostObjectTypes'
-        costSubObjectId:
-          description: Secondary cost object identifier. Not use for all cost object
-            types.
-          example: ''
-          type: string
-        date:
-          description: Time entry date
-          example: '2021-11-04'
-          format: date
-          type: string
-        hours:
-          description: Number of hours worked
-          example: 7.5
-          format: double
-          maximum: 24
-          minimum: 0
-          type: number
-        timeEntryId:
-          description: Unique id for time entry
-          example: '154632395'
+        customerId:
+          format: int32
+          type: integer
+        id:
+          format: int32
+          type: integer
+        levels:
+          items:
+            $ref: '#/components/schemas/ThresholdLevel'
+          nullable: true
+          type: array
+        name:
+          nullable: true
           type: string
       type: object
-    TimeEntryCreate:
+    ThresholdItem:
+      additionalProperties: false
       properties:
-        comment:
-          description: Comment for time entry
-          example: Analysis of task xyz
-          maxLength: 40
+        id:
+          format: int32
+          type: integer
+        operator:
+          nullable: true
           type: string
-        costObjectId:
-          description: Cost object identifier
-          example: C.BAX.30.xxx
-          type: string
-        costObjectTypeId:
-          $ref: '#/components/schemas/CostObjectTypes'
-        costSubObjectId:
-          description: Secondary cost object identifier. Not use for all cost object
-            types.
-          example: '0100'
-          type: string
-        date:
-          description: Time entry date
-          example: '2021-11-04'
-          format: date
-          type: string
-        hours:
-          description: Number of hours worked
-          example: 8.0
+        parameter:
+          $ref: '#/components/schemas/Parameter'
+        unit:
+          $ref: '#/components/schemas/Unit'
+        value:
           format: double
-          maximum: 24
-          minimum: 0
           type: number
-      required:
-      - date
-      - hours
-      - costObjectTypeId
-      - costObjectId
+        valueEnd:
+          format: double
+          nullable: true
+          type: number
       type: object
-    TimeEntryJsonPatch:
-      items:
-        properties:
-          op:
-            description: 'JSON Patch operation according to RFC6902.
-
-              '
-            enum:
-            - replace
-            example: replace
+    ThresholdItemPostDto:
+      additionalProperties: false
+      properties:
+        id:
+          format: int32
+          type: integer
+        operator:
+          description: 'choose one of the values: "BETWEEN","<","<=",">",">=","==","="'
+          example: '>='
+          nullable: true
+          type: string
+        parameter:
+          nullable: true
+          type: string
+        unit:
+          nullable: true
+          type: string
+        value:
+          format: double
+          type: number
+        valueEnd:
+          description: use only for "between" operator
+          format: double
+          nullable: true
+          type: number
+      type: object
+    ThresholdLevel:
+      additionalProperties: false
+      properties:
+        colour:
+          nullable: true
+          type: string
+        description:
+          nullable: true
+          type: string
+        groups:
+          items:
+            $ref: '#/components/schemas/ThresholdLevelGroup'
+          nullable: true
+          type: array
+        id:
+          format: int32
+          type: integer
+        severity:
+          format: int32
+          type: integer
+        thresholdId:
+          format: int32
+          type: integer
+      type: object
+    ThresholdLevelGroup:
+      additionalProperties: false
+      properties:
+        id:
+          format: int32
+          type: integer
+        items:
+          items:
+            $ref: '#/components/schemas/ThresholdItem'
+          nullable: true
+          type: array
+        name:
+          nullable: true
+          type: string
+      type: object
+    ThresholdLevelGroupPostDto:
+      additionalProperties: false
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ThresholdItemPostDto'
+          nullable: true
+          type: array
+        name:
+          nullable: true
+          type: string
+      type: object
+    ThresholdLevelPostDto:
+      additionalProperties: false
+      properties:
+        colour:
+          description: Hexadecimal color code
+          example: '#000000'
+          nullable: true
+          pattern: ^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$
+          type: string
+        description:
+          nullable: true
+          type: string
+        groups:
+          items:
+            $ref: '#/components/schemas/ThresholdLevelGroupPostDto'
+          nullable: true
+          type: array
+        severity:
+          format: int32
+          type: integer
+      type: object
+    ThresholdPostDto:
+      additionalProperties: false
+      properties:
+        levels:
+          items:
+            $ref: '#/components/schemas/ThresholdLevelPostDto'
+          nullable: true
+          type: array
+        name:
+          example: Threshold name
+          nullable: true
+          type: string
+      type: object
+    Unit:
+      additionalProperties: false
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          nullable: true
+          type: string
+      type: object
+    UnitDto:
+      additionalProperties: false
+      properties:
+        baseUnit:
+          nullable: true
+          type: string
+        name:
+          nullable: true
+          type: string
+      type: object
+    UnitProfileDto:
+      additionalProperties: false
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          example: Unit profile name
+          nullable: true
+          type: string
+        parameterUnits:
+          additionalProperties:
             type: string
-          path:
-            description: Path indicating the property to be impacted by the operation
-            enum:
-            - /date
-            - /hours
-            - /comment
+          example:
+            temperature: fahrenheit
+            windspeed: knots
+          nullable: true
+          type: object
+      type: object
+    UnitProfilePostDto:
+      additionalProperties: false
+      properties:
+        name:
+          example: Unit profile name
+          nullable: true
+          type: string
+        parameterUnits:
+          additionalProperties:
             type: string
-          value:
-            description: 'Value to be assigned to a resource property based on the
-              operation and path.
-
-              '
-            example: '2021-11-11'
-            oneOf:
-            - type: string
-            - type: number
-        type: object
-      type: array
+          example:
+            temperature: fahrenheit
+            windspeed: knots
+          nullable: true
+          type: object
+      type: object
   securitySchemes:
-    apiKey:
-      description: Subscription key created from https://api.equinor.com
+    apiKeyHeader:
       in: header
-      name: ocp-apim-subscription-key
+      name: Ocp-Apim-Subscription-Key
       type: apiKey
-    bearerAuth:
-      flows:
-        authorizationCode:
-          authorizationUrl: https://login.windows.net/common/oauth2/authorize?resource=0e595101-1f08-4ce0-8684-148b2e2b8e18
-          tokenUrl: https://login.microsoftonline.com/common/oauth2/token
-      type: oauth2
-externalDocs:
-  description: API documentation
-  url: https://equinor.github.io/api-first-workbench
+    apiKeyQuery:
+      in: query
+      name: subscription-key
+      type: apiKey
 info:
-  contact:
-    name: Maintenance API Team - GBS IT PLA POM
-    url: https://github.com/equinor/api-first-workbench
-  description: "The Timewriting API is an open API covering the HR area.\nIt's an\
-    \ example API used to demonstrate the [api-first-workbench](https://github.com/equinor/api-first-workbench)\
-    \ and has not been implemented.\n\nThis document describes release v1.0.1. We\
-    \ recommend using documentation published at https://equinor.github.io/api-first-workbench\
-    \ as it provides the best developer experience.\nInformation on the next release\
-    \ v1.1.0 is available at [this page](https://equinor.github.io/api-first-workbench/latest/)\n\
-    \n# Introduction\nThe API is designed and built according to [Equinor's API strategy](https://github.com/equinor/api-strategy).\n\
-    \nThe API is documented in OpenAPI 3.0 format and follows REST principles.\n\n\
-    ## Terminology\nThe API will use common terminology used across the Oil&Gas industry.\n\
-    \n## API versioning\n`api-version` must be present in all request as part of the\
-    \ query string. **Requests without API version will be rejected with a HTTP 404\
-    \ response code**. The latest api-version is v1.\n\nThe `api-version` will stay\
-    \ stable over time as the API follows the principles of [API evolution](https://apisyouwonthate.com/blog/api-evolution-for-rest-http-apis)\n\
-    \n## Subscription key\nSubscription key must be created from [Equinor's API Portal](https://api.equinor.com/products/corporate)\
-    \ for the consumer application  and each request must have the HTTP header `Ocp-Apim-Subscription-Key`\
-    \ present with this value.\n\n## Authentication and authorization overview\nThe\
-    \ user executing the API requests will need to authenticate with OAuth 2.0 authorization\
-    \ code flow with Equinor Azure AD as the identity provider. \n\n# Modelling of\
-    \ resources\n## Resources\nThe resource will be named according to common terminology\
-    \ used across the Oil&Gas industry (for example Norsok standard NS-EN 13306 and\
-    \ ISO 14224).\n\nExample of resources are `/time-entries` and `/cost-objects`.\n\
-    \n## Resource keys\nResources keys will indicate the resource type as part of\
-    \ the name. \nExample: `timeEntryId` and `costObjectId`.\n\n## Dates\nAll date\
-    \ and time information are based on UTC (Universal Time Coordinated) and formatted\
-    \ according to [RFC3339](https://www.ietf.org/rfc/rfc3339.txt)\n\nThis also applies\
-    \ to durations, such as 1 day or 2 hours, which are encoded as `P0Y0M1DT0H0M0S`\
-    \ and `P0Y0M0DT2H0M0S`.\n\nThese values are easily compatible with time libraries\
-    \ such as [moment.js library](https://momentjs.com/docs/).\n\n# Modelling of endpoints\n\
-    ## Operation - Lookup\nLookup operations return a single instance for the resource\
-    \ based on the key.\n\nThe resource may have related data which may or may not\
-    \ be relevant for a client. In order to indicate which related data to include,\
-    \ the lookup operation may provide `include-...` query string boolean options.\n\
-    Example: `include-time-entries`\n\n## Operation - Search/Filter\nClients need\
-    \ to retrieve a subset of all resources for an endpoint. Usually, the criteria\
-    \ are non-trivial and in many case are not direct properties of the resource.\
-    \ REST does not provide a well-defined pattern for these types of requests. \n\
-    \nOur approach, is to provide predefined filters with parameters. Each filter\
-    \ is documented in the OpenAPI specification.\n\n## Operation - Update\nUpdate\
-    \ operations for resources will utilize a sub-set of the JSON Patch proposed standard.\
-    \ JSON Patch is described in [RFC 6902](https://tools.ietf.org/html/rfc6902) with\
-    \ a user-friendly version at [http://jsonpatch.com/](http://jsonpatch.com/). \n\
-    \nOur goals with using JSON Patch is to focus on the intent of the update and\
-    \ avoid common pitfalls for the client. The common pitfalls we avoid with JSON\
-    \ Patch are: \n1. Clients inadvertently resetting properties of a resource to\
-    \ an empty value. This due to the client mistakenly sending all properties of\
-    \ a resource in a HTTP PATCH request with some of them having an initial value.\n\
-    1. Clients inadvertently overwriting changes made by other users directly in the\
-    \ back-end system. This due to client mistakenly have provided properties which\
-    \ have not been changed in a HTTP PATCH request.\n\nUsing JSON Patch is straightforward.\
-    \ \n- Set the content-type to `application/json-patch+json`. \n- In the body,\
-    \ send an array of JSON Patch operations. Typically, one element pr property to\
-    \ be update for the resource\n\nAs part of the OpenAPI documentation, we will\
-    \ provide concrete examples for all update operation. In addition, the schema\
-    \ definiton for the request body defines which resource properties can be updated.\n\
-    \nExample of JSON Patch request body which replaces the value of the properties\
-    \ title and text:\n```\n[\n  {\n    \"op\": \"replace\",\n    \"path\": \"/comment\
-    \ \",\n    \"value\": \"New comment\"\n  },\n  {\n    \"op\": \"replace\",\n \
-    \   \"path\": \"/hours\",\n    \"value\": 4\n  }\n]\n```\n\n## HTTP Response codes\n\
-    HTTP response codes will follow established best practice for REST services and\
-    \ will be documented in the OpenAPI specification. \n\nBelow is a list of status\
-    \ codes used in the API which the client should handle. \nCommon: \n* 400 Bad\
-    \ Request - The request is invalid. For example missing parameters in the query\
-    \ string\n* 401 Unauthorized - The request did not include an authentication token\
-    \ or the authentication token was expired or invalid\n* 403 Forbidden - User does\
-    \ not have sufficient permissions\n* 405 Method not allowed - HTTP verb not supported\
-    \ for requested resource\n* 500 Internal Server Error - Sorry, an unexpected error\
-    \ occured on our side. Let's us know and we'll get around to fix it\n* 503 Service\
-    \ unavailable - API or a service it depends on is currently not available. \n\n\
-    Read - HTTP GET:\n* 200 OK - The request completed successfully\n* 404 Not Found\
-    \ - The resource does not exist or an non-existing endpoint has been called\n\n\
-    Create - HTTP POST: \n* 201 Created - Create of resource was successful and resource\
-    \ is returned in body\n* 400 Bad Request - The resource provided in the body is\
-    \ not according to specification\n* 409 Conflict - The creation of this resource\
-    \ is in conflict with an already existing resources\n\nCreate - HTTP PUT:\n* 204\
-    \ No Content - Request successful but no resource returned in body\n\nUpdate -\
-    \ HTTP PATCH: \n* 200 OK - Update of resource was successful and resource is returned\
-    \ in body\n* 400 Bad Request - The resource properties to update is not according\
-    \ to specification\n* 409 Conflict - The update of this resource is in conflict\
-    \ with an already existing resources\n\nDelete - HTTP DELETE: \n* 204 No Content\
-    \ - Request successful but no resource returned in body\n* 409 Conflict - The\
-    \ deletion of this resource is not possible\n\n# Deprecation\n## Deprecation policy\n\
-    The API will use the principles of [API evolution](https://apisyouwonthate.com/blog/api-evolution-for-rest-http-apis)\
-    \ instead of introducing a new api-version on every breaking change.\n\nIn order\
-    \ to achieve this, endpoints, query parameters and resource properties can become\
-    \ deprecated and will be marked so in the OpenAPI specification.\n\nIn general,\
-    \ depcrated properties will be removed after 3 months.\nIf a client uses a deprecated\
-    \ endpoint or query parameter, the API will in the response provide a Sunset HTTP\
-    \ header\n`Sunset: Sat, 15 May 2021 12:59:59 GMT` representing the removal date\
-    \ for the deprecated feature as specified in [RFC8594](https://tools.ietf.org/html/rfc8594).\
-    \ In addition, a HTTP header `Link: <https://equinor.github.io/maintenance-api-docs/#section/Deprecation>;\
-    \ rel=\"sunset\"` will be provided to pointing to relevant documentation.\n\n\
-    Clients must monitor these messages and take corrective actions.\n\n## Endpoints\
-    \ with deprecation\nNone\n\n# Feature requests\nFeature requests are welcomed\
-    \ and can be submitted through: \n"
-  license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/
-  title: StormGeo API
-  version: 1.0.1
-  x-logo:
-    altText: Maintenance API logo
-    url: https://equinor.github.io/api-first-workbench/img/logo.png
+  description: "The StormGeo API exposes functionality related to the weather of predefined\
+    \ locations, or given coordinates. The API is available to Equinor employees,\
+    \ and certain subcontractors. \n# Introduction\n The API is designed and built\
+    \ according to [Equinor's API strategy](https://github.com/equinor/api-strategy).\n\
+    The API is documented in OpenAPI 3.0 format and follows REST principles.\n\nA\
+    \ simple way to test the API is through [Postman](https://www.postman.com/) which\
+    \ is accessible through AccessIT.\n ## Data Sources\nThe API functions as a gateway\
+    \ to StormGeo's own weather API, creating a unified way for Equinor employees\
+    \ and third parties to access this resource.\n ## Authentication and Authorization\
+    \ Overview\n The user executing the API requests will need to authenticate with\
+    \ OAuth 2.0 authorization code flow with Equinor Azure AD as the identity provider.<br><br>\
+    \ \n For application permissions there is an Equinor role for internal application\
+    \ access, and the possibility for external connections through a restricted version\
+    \ of the API.\n # Client Setup\n In order to call the StormGeo API, a client application\
+    \ needs to be configured with permission to call the StormGeo API on behalf of\
+    \ the logged in user in Equinor Azure AD, or have an application permission.\n\
+    \nThe following configuration steps needs to be performed for the initial setup:\n\
+    \n1. Create client app registration in Equinor Azure AD through [portal.azure.com](https://portal.azure.com)\
+    \ for each environment of your solution. This step requires the [Application Developer\
+    \ role](https://accessit.equinor.com/Search/Search?term=Application+Developer+%28AZURE+ACTIVE+DIRECTORY%29)\
+    \ in Access IT. See Omnia documentation [Application Management in AAD](https://docs.omnia.equinor.com/governance/iam/App-General-Info/)\
+    \ for more information.\n  We recommend one client app registration pr client\
+    \ environment such as dev, qa and production.\n\n1. Create client secrets for\
+    \ your client app registrations\n1. Add an API permission for the app registrations\
+    \ towards the StormGeo API. The following API names are used with application\
+    \ id in parenthesis: Weatherforecast api prod (81707c90-2ec8-4b00-8447-5a5fbbceb3e8),\
+    \ Weatherforecast api test (bad0664a-3c4b-4f42-a8de-d12d82ea586c), \n1. Trigger\
+    \ an authentication request through a http client (such as postman) in order to\
+    \ trigger the consent process of the API permission\n\nWe recommend using Postman\
+    \ as a tool for experimenting with the API.\n\n## HTTP Response codes\nHTTP response\
+    \ codes will follow established best practice for REST services and will be documented\
+    \ in the OpenAPI specification. \n\nBelow is a list of status codes used in the\
+    \ API which the client should handle. \nCommon: \n* 400 Bad Request - The request\
+    \ is invalid. For example missing parameters in the query string\n* 401 Unauthorized\
+    \ - The request did not include an authentication token or the authentication\
+    \ token was expired or invalid\n* 403 Forbidden - User does not have sufficient\
+    \ permissions\n* 404 Not Found - The resource does not exist or an non-existing\
+    \ endpoint has been called\n\nRead - HTTP GET:\n* 200 OK - The request completed\
+    \ successfully\n\n"
+  title: StormGeo
+  version: v1
 openapi: 3.0.1
 paths:
-  /api-first-workbench/calendar/{start-date}/{end-date}:
+  /api-first-workbench/forecasts:
     get:
-      description: '### Overview
-
-        TBD
-
-        '
-      operationId: LookupCalendarByDateRange
+      description: Returns all forecasts for a specific location.
+      operationId: get-forecasts
       parameters:
-      - in: path
-        name: start-date
-        required: true
-        schema:
-          example: '2021-11-01'
-          format: date
-          type: string
-      - in: path
-        name: end-date
-        required: true
-        schema:
-          example: '2021-11-01'
-          format: date
-          type: string
-      - description: Include all time entries in the calendar
+      - description: Format - double. Format - double. The longitude of the location
         in: query
-        name: include-time-entries
-        required: false
+        name: longitude
+        required: true
         schema:
-          default: true
-          type: boolean
+          format: double
+          type: number
+      - description: Format - double. Format - double. The latitude of the location
+        in: query
+        name: latitude
+        required: true
+        schema:
+          format: double
+          type: number
+      - description: Format - int32. Format - int32. The id of the parameter set to
+          use. Default temperature and wind speed and dirction.
+        in: query
+        name: parameterSetId
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. The id of the unit profile to
+          use. Default metric units.
+        in: query
+        name: unitProfileId
+        schema:
+          format: int32
+          type: integer
+      - description: Timeresoltion for the forecast. Defines how many timesteps of
+          each duration is returned. Eg. "1=48,3=24" means 48 x 1 hour steps, then
+          24 x 3 hour steps. Available step sizes are 1,3,6,12 and 24. Just 1 means
+          1 hour timesteps until 66 hours, just 3 means then 3 hour timesteps until
+          120 hours, just 6 means then 6 hour timesteps until 168 hours. Eg. "3=24,6"
+          means 24 x 3 hour timesteps, then 16 x 6 hour timesteps (total 168 hours).
+        in: query
+        name: timeResolution
+        schema:
+          default: 1,3,6
+          type: string
       responses:
         '200':
           content:
             application/json:
+              example:
+              - data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
               schema:
-                $ref: '#/components/schemas/Calendar'
-          description: Request successful
-        '400':
+                items:
+                  $ref: '#/components/schemas/Forecast'
+                type: array
+            text/json:
+              example:
+              - data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
+              schema:
+                items:
+                  $ref: '#/components/schemas/Forecast'
+                type: array
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                items:
+                  $ref: '#/components/schemas/Forecast'
+                type: array
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
           content:
             application/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Bad request (for example if start-date is before end-date)
-        default:
-          content:
-            application/json:
+            text/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Lookup calendar for a date range
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+          description: Not Found
+      summary: Returns all forecasts for a specific location.
       tags:
-      - Calendar
-  /api-first-workbench/calendar/{start-date}/{end-date}/time-entries:
-    put:
-      description: '### Overview
-
-        Perform time writing by supplying all time entries for a given calendar period.
-
-        It''s also possible to change individual time entries via endpoints `POST
-        /time-entries`,`PATCH /time-entries/{time-entry-id}` and `DELETE /time-entries/{time-entry-id}`.
-
-        ### Important information
-
-        This operation overwrites all existing time writing in the given calendar
-        period.
-
-        If there are errors for one or more of the time entries, none of them will
-        be updated.
-
-        '
-      operationId: PutTimeEntriesForCalendar
-      parameters:
-      - in: path
-        name: start-date
-        required: true
-        schema:
-          example: '2021-11-01'
-          format: date
-          type: string
-      - in: path
-        name: end-date
-        required: true
-        schema:
-          example: '2021-11-01'
-          format: date
-          type: string
-      requestBody:
-        content:
-          application/json:
-            examples:
-              calendar-time-entries-put:
-                $ref: '#/components/examples/calendar-time-entries-put'
-            schema:
-              items:
-                $ref: '#/components/schemas/TimeEntryCreate'
-              type: array
-        description: Time entries
-        required: true
-      responses:
-        '204':
-          description: Successful - No content. Lookup result using `GET /calendar/{start-date}/{end-date}`
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-          description: Bad request (for example invalid costObjectId)
-        default:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Perform time writing for calendar (overwrites existing time entries)
-      tags:
-      - Calendar
-      - New endpoints
-  /api-first-workbench/cost-objects/{cost-object-id}:
+      - Weather
+  /api-first-workbench/forecasts/{forecastType}:
     get:
-      description: "### Overview\nLookup a single cost object. \n\nThe cost object\
-        \ is used when creating a new time entry.\n"
-      operationId: LookupCostObject
+      description: Returns all forecasts for a specific location.
+      operationId: get-weather-api-forecasts-forecasttype
       parameters:
-      - in: path
-        name: cost-object-id
+      - description: 'The type forecast. Available types: "model".'
+        in: path
+        name: forecastType
         required: true
         schema:
-          example: C.BAX.30.xxx
+          type: string
+      - description: Format - double. Format - double. The longitude of the location
+        in: query
+        name: longitude
+        required: true
+        schema:
+          format: double
+          type: number
+      - description: Format - double. Format - double. The latitude of the location
+        in: query
+        name: latitude
+        required: true
+        schema:
+          format: double
+          type: number
+      - description: Format - int32. Format - int32. The id of the parameter set to
+          use. Default temperature and wind speed and dirction.
+        in: query
+        name: parameterSetId
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. The id of the unit profile to
+          use. Default metric units.
+        in: query
+        name: unitProfileId
+        schema:
+          format: int32
+          type: integer
+      - description: Timeresolution for the forecast. Defines how many timesteps of
+          each duration is returned. Eg. "1=48,3=24" means 48 x 1 hour steps, then
+          24 x 3 hour steps. Available step sizes are 1,3,6,12 and 24. Just 1 means
+          1 hour timesteps until 66 hours, just 3 means then 3 hour timesteps until
+          120 hours, just 6 means then 6 hour timesteps until 168 hours. Eg. "3=24,6"
+          means 24 x 3 hour timesteps, then 16 x 6 hour timesteps (total 168 hours).
+        in: query
+        name: timeResolution
+        schema:
+          default: 1,3,6
           type: string
       responses:
         '200':
           content:
             application/json:
+              example:
+                data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
               schema:
-                $ref: '#/components/schemas/CostObject'
-          description: Request successful
-        '404':
-          content:
-            application/json:
+                $ref: '#/components/schemas/Forecast'
+            text/json:
+              example:
+                data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
               schema:
-                $ref: '#/components/schemas/NotFoundDetails'
-          description: Not found - Cost object does not exist
-        default:
-          content:
-            application/json:
+                $ref: '#/components/schemas/Forecast'
+            text/plain:
+              examples:
+                default:
+                  value: null
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Lookup single cost object
-      tags:
-      - Cost objects
-  /api-first-workbench/time-entries:
-    post:
-      description: "### Overview\nCreate single time entry for logged on user. \n\n\
-        Clients should expect end users to have prexisting knowledge of the cost object\
-        \ to use for a time entry, but can assist them by providing suggestions based\
-        \ on earlier time entries from endpoint `/calendar/{start-date}/{end-date}`.\
-        \ A general search for cost objects used in the company will not be provided\
-        \ as it increases the risk for wrong time writing.\n\nThe time entry will\
-        \ need approval by the task owner of the cost object after registration. It's\
-        \ recommended to provide a comment where possible in order ease the approval\
-        \ process. If the approver does not have enough information, the time entry\
-        \ will be sent back to the end user through the workflow inbox of the ERP\
-        \ system.\n\nThe client is recommended to verify that the cost object exist\
-        \ and is open for time writing through the endpoint `/cost-objects/{cost-object-id}`.\n\
-        \n### Important information\nThe endpoint does not currently support clock\
-        \ times. If logged on user is configured for clock times, the request will\
-        \ fail with a `409 - Conflict` error.\n\nThe request will fail with a `409\
-        \ - Conflict` error if the date is more than 3 months in the past.\n"
-      operationId: CreateTimeEntry
-      requestBody:
-        content:
-          application/json:
-            examples:
-              time-entry-create-network:
-                $ref: '#/components/examples/time-entry-create-network'
-              time-entry-create-wbs:
-                $ref: '#/components/examples/time-entry-create-wbs'
-            schema:
-              $ref: '#/components/schemas/TimeEntryCreate'
-        description: Time entry update
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TimeEntry'
-          description: Created - Time entry created successfully
+                $ref: '#/components/schemas/Forecast'
+          description: Success
         '400':
           content:
             application/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Bad request - For example more than hours in request is larger
-            than 24
-        '409':
-          content:
-            application/json:
+            text/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Conflict - For example if the date is too far back in time
-            and cannot be used
-        default:
-          content:
-            application/json:
+            text/plain:
+              examples:
+                default:
+                  value: null
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Create single time entry
-      tags:
-      - Time entries
-      - New endpoints
-  /api-first-workbench/time-entries/{time-entry-id}:
-    delete:
-      description: '## Overview
-
-        Delete single time entry.
-
-        '
-      operationId: DeleteTimeEntry
-      parameters:
-      - in: path
-        name: time-entry-id
-        required: true
-        schema:
-          example: '154632395'
-          type: string
-      responses:
-        '204':
-          description: No content - Time entry deleted
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
         '404':
           content:
             application/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Not found - Time entry does not exist for logged in user
-        '409':
-          content:
-            application/json:
+            text/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Conflict - For example if the time entry is too far back in
-            time and cannot be deleted
-        default:
-          content:
-            application/json:
+            text/plain:
+              examples:
+                default:
+                  value: null
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Delete single time entry
+          description: Not Found
+      summary: Returns all forecasts for a specific location.
       tags:
-      - Time entries
+      - Weather
+  /api-first-workbench/locations:
     get:
-      description: "### Overview\nLookup a single time entry. \nTime entry represent\
-        \ hours registered on a specific day towards a cost object.\n\n### Important\
-        \ information\nConsider using the endpoint `/calendar/{start-date}/{end-date}`\
-        \ for retrieving all time entries in the date range.\n"
-      operationId: LookupTimeEntry
+      description: Returns a list of available locations.
+      operationId: get-locations
       parameters:
-      - in: path
-        name: time-entry-id
+      - description: "Filters is a comma-delimited list of {Name}{Operator}{Value}\
+          \ where \r\n- {Name} is the name of the property. Multiple names (logial\
+          \ OR) can be entered pipe delimited, eg. \"(value1|value2)>10\" will filter\
+          \ items where value1 or value2 is greater than 10.\r\n- {Value} is the value\
+          \ used for filtering. Multiple values (logial OR) can be entered pipe delimited,\
+          \ eg. \"value@=foo|bar\" will filter items where value contains either \"\
+          foo\" or \"bar\".\r\n- {Operator} is one of the following operators:\r\n\
+          \r\n| Operator | Name |\r\n|-|---|\r\n| == | Equals | \r\n| != | Not equal\
+          \ | \r\n| > | Greater than | \r\n| < | Less than | \r\n| >= | Greater than\
+          \ or equal to | \r\n| <= | Less than or equal to | \r\n| @= | Contains |\
+          \ \r\n| _= | Starts with | \r\n| !@= | Does not contain | \r\n| !_= | Does\
+          \ not start with |"
+        in: query
+        name: Filters
+        schema:
+          type: string
+      - description: Sorts is a comma delimited ordered list of proprty names to sort
+          by. Prefix with "-" to sort descending.
+        in: query
+        name: Sorts
+        schema:
+          type: string
+      - description: Format - int32. Format - int32. Number of items per page. Default
+          no limit.
+        in: query
+        name: PageSize
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. Number of page to return. Default
+          1.
+        in: query
+        name: Page
+        schema:
+          format: int32
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+              - customerId: 0
+                expiry: string
+                id: 0
+                lastUpdatedForecast: string
+                latitude: 0
+                longitude: 0
+                name: string
+                timeResolution: string
+                timeZone: string
+              schema:
+                items:
+                  $ref: '#/components/schemas/Point'
+                type: array
+            text/json:
+              example:
+              - customerId: 0
+                expiry: string
+                id: 0
+                lastUpdatedForecast: string
+                latitude: 0
+                longitude: 0
+                name: string
+                timeResolution: string
+                timeZone: string
+              schema:
+                items:
+                  $ref: '#/components/schemas/Point'
+                type: array
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                items:
+                  $ref: '#/components/schemas/Point'
+                type: array
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns a list of available locations.
+      tags:
+      - Locations
+  /api-first-workbench/locations/{id}:
+    get:
+      description: Returns  information on a specific location.
+      operationId: get-locations-id
+      parameters:
+      - description: Format - int32. Format - int32. The id of the location
+        in: path
+        name: id
         required: true
         schema:
-          example: '154632395'
+          format: int32
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                customerId: 0
+                expiry: string
+                id: 0
+                lastUpdatedForecast: string
+                latitude: 0
+                longitude: 0
+                name: string
+                timeResolution: string
+                timeZone: string
+              schema:
+                $ref: '#/components/schemas/Point'
+            text/json:
+              example:
+                customerId: 0
+                expiry: string
+                id: 0
+                lastUpdatedForecast: string
+                latitude: 0
+                longitude: 0
+                name: string
+                timeResolution: string
+                timeZone: string
+              schema:
+                $ref: '#/components/schemas/Point'
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                $ref: '#/components/schemas/Point'
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+          description: Not Found
+      summary: Returns  information on a specific location.
+      tags:
+      - Locations
+  /api-first-workbench/locations/{id}/forecasts:
+    get:
+      description: Returns all forecasts for a specific location.
+      operationId: get-locations-id-forecasts
+      parameters:
+      - description: Format - int32. Format - int32. The id of the location
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. The id of the parameter set to
+          use. Default temperature and wind speed and dirction.
+        in: query
+        name: parameterSetId
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. The id of the unit profile to
+          use. Default metric units.
+        in: query
+        name: unitProfileId
+        schema:
+          format: int32
+          type: integer
+      - description: Timeresoltion for the forecast. Defines how many timesteps of
+          each duration is returned. Eg. "1=48,3=24" means 48 x 1 hour steps, then
+          24 x 3 hour steps. Available step sizes are 1,3,6,12 and 24. Just 1 means
+          1 hour timesteps until 66 hours, just 3 means then 3 hour timesteps until
+          120 hours, just 6 means then 6 hour timesteps until 168 hours. Eg. "3=24,6"
+          means 24 x 3 hour timesteps, then 16 x 6 hour timesteps (total 168 hours).
+        in: query
+        name: timeResolution
+        schema:
+          default: 1,3,6
           type: string
       responses:
         '200':
           content:
             application/json:
+              example:
+              - data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
               schema:
-                $ref: '#/components/schemas/TimeEntry'
-          description: Request successful and time entry updated
+                items:
+                  $ref: '#/components/schemas/Forecast'
+                type: array
+            text/json:
+              example:
+              - data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
+              schema:
+                items:
+                  $ref: '#/components/schemas/Forecast'
+                type: array
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                items:
+                  $ref: '#/components/schemas/Forecast'
+                type: array
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
         '404':
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/NotFoundDetails'
-          description: Time entry does not exist for logged in user
-        default:
-          content:
-            application/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Lookup single time entry
+            text/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+          description: Not Found
+      summary: Returns all forecasts for a specific location.
       tags:
-      - Time entries
-    patch:
-      description: '## Overview
-
-        Update single time entry.
-
-
-        Supports:
-
-        - Update comment
-
-        - Update hours
-
-        - Update date
-
-        '
-      operationId: UpdateTimeEntry
+      - Locations
+  /api-first-workbench/locations/{id}/forecasts/{forecastType}:
+    get:
+      description: Returns a specific forecast for a specific location.
+      operationId: get-locations-id-forecasts-forecasttype
       parameters:
-      - in: path
-        name: time-entry-id
+      - description: Format - int32. Format - int32. The id of the location
+        in: path
+        name: id
         required: true
         schema:
-          example: '154632395'
-          type: string
-      requestBody:
-        content:
-          application/json:
-            examples:
-              time-entries-update-all:
-                $ref: '#/components/examples/time-entries-update-all'
-              time-entries-update-comment:
-                $ref: '#/components/examples/time-entries-update-comment'
-              time-entries-update-date:
-                $ref: '#/components/examples/time-entries-update-date'
-              time-entries-update-hours:
-                $ref: '#/components/examples/time-entries-update-hours'
-            schema:
-              $ref: '#/components/schemas/TimeEntryJsonPatch'
-        description: Time entry update
+          format: int32
+          type: integer
+      - description: 'The type forecast. Available types: "model", "corrected".'
+        in: path
+        name: forecastType
         required: true
+        schema:
+          type: string
+      - description: Format - int32. Format - int32. The id of the parameter set to
+          use. Default temperature and wind speed and dirction.
+        in: query
+        name: parameterSetId
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. The id of the unit profile to
+          use. Default metric units.
+        in: query
+        name: unitProfileId
+        schema:
+          format: int32
+          type: integer
+      - description: Timeresoltion for the forecast. Defines how many timesteps of
+          each duration is returned. Eg. "1=48,3=24" means 48 x 1 hour steps, then
+          24 x 3 hour steps. Available step sizes are 1,3,6,12 and 24. Just 1 means
+          1 hour timesteps until 66 hours, just 3 means then 3 hour timesteps until
+          120 hours, just 6 means then 6 hour timesteps until 168 hours. Eg. "3=24,6"
+          means 24 x 3 hour timesteps, then 16 x 6 hour timesteps (total 168 hours).
+        in: query
+        name: timeResolution
+        schema:
+          default: 1,3,6
+          type: string
       responses:
         '200':
           content:
             application/json:
+              example:
+                data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
               schema:
-                $ref: '#/components/schemas/TimeEntry'
-          description: Request successful and time entry updated
-        '400':
-          content:
-            application/json:
+                $ref: '#/components/schemas/Forecast'
+            text/json:
+              example:
+                data: {}
+                issueTime: string
+                latitude: 0
+                longitude: 0
+                timeResolution: string
+                type: string
+                units: {}
               schema:
-                $ref: '#/components/schemas/ProblemDetails'
-          description: Bad request - For example too many hours
+                $ref: '#/components/schemas/Forecast'
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                $ref: '#/components/schemas/Forecast'
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
         '404':
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/NotFoundDetails'
-          description: Not found - Time entry does not exist for logged in user
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProblemDetails'
-          description: Conflict - For example if the time entry is too far back in
-            time and cannot be updated
-        default:
-          content:
-            application/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
-          description: Unexpected error
-      summary: Update single time entry
+            text/json:
+              example:
+                detail: string
+                instance: string
+                status: 0
+                title: string
+                type: string
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+            text/plain:
+              examples:
+                default:
+                  value: null
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+          description: Not Found
+      summary: Returns a specific forecast for a specific location.
       tags:
-      - Time entries
+      - Locations
+  /api-first-workbench/locations/{id}/threshold/{thresholdId}:
+    get:
+      description: Returns asset state based on location and threshold
+      operationId: get-locations-id-threshold-thresholdid
+      parameters:
+      - description: Format - int32. Format - int32. The id of the location
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int32
+          type: integer
+      - description: Format - int32. Format - int32. The id of the threshold
+        in: path
+        name: thresholdId
+        required: true
+        schema:
+          format: int32
+          type: integer
+      - description: Hexacode string, representing the threshold levels, if not empty
+          it will overwrite default colours.
+        in: query
+        name: thresholdColors
+        schema:
+          type: string
+      - description: Timeresolution for the forecast. Defines how many timesteps of
+          each duration is returned. Eg. "1=48,3=24" means 48 x 1 hour steps, then
+          24 x 3 hour steps. Available step sizes are 1,3,6,12 and 24. Just 1 means
+          1 hour timesteps until 66 hours, just 3 means then 3 hour timesteps until
+          120 hours, just 6 means then 6 hour timesteps until 168 hours. Eg. "3=24,6"
+          means 24 x 3 hour timesteps, then 16 x 6 hour timesteps (total 168 hours).
+        in: query
+        name: timeResolution
+        schema:
+          default: 1,3,6
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns asset state based on location and threshold
+      tags:
+      - Locations
+  /api-first-workbench/parameter-sets:
+    get:
+      description: Retruns available parameter sets
+      operationId: get-parameter-sets
+      parameters:
+      - description: "Filters is a comma-delimited list of {Name}{Operator}{Value}\
+          \ where \r\n- {Name} is the name of the property. Multiple names (logial\
+          \ OR) can be entered pipe delimited, eg. \"(value1|value2)>10\" will filter\
+          \ items where value1 or value2 is greater than 10.\r\n- {Value} is the value\
+          \ used for filtering. Multiple values (logial OR) can be entered pipe delimited,\
+          \ eg. \"value@=foo|bar\" will filter items where value contains either \"\
+          foo\" or \"bar\".\r\n- {Operator} is one of the following operators:\r\n\
+          \r\n| Operator | Name |\r\n|-|---|\r\n| == | Equals | \r\n| != | Not equal\
+          \ | \r\n| > | Greater than | \r\n| < | Less than | \r\n| >= | Greater than\
+          \ or equal to | \r\n| <= | Less than or equal to | \r\n| @= | Contains |\
+          \ \r\n| _= | Starts with | \r\n| !@= | Does not contain | \r\n| !_= | Does\
+          \ not start with |"
+        in: query
+        name: Filters
+        schema:
+          type: string
+      - description: Sorts is a comma delimited ordered list of proprty names to sort
+          by. Prefix with "-" to sort descending.
+        in: query
+        name: Sorts
+        schema:
+          type: string
+      - description: Number of items per page. Default no limit.
+        in: query
+        name: PageSize
+        schema:
+          type: string
+      - description: Number of page to return. Default 1.
+        in: query
+        name: Page
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Retruns available parameter sets
+  /api-first-workbench/parameter-sets/{id}:
+    get:
+      description: Retruns information on a specific parameter set
+      operationId: get-parameter-sets-id
+      parameters:
+      - description: The id of the parameter set
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Retruns information on a specific parameter set
+  /api-first-workbench/parameters:
+    get:
+      description: Returns a list of available parameters to use with parameter sets.
+      operationId: get-parameters
+      parameters:
+      - description: "Filters is a comma-delimited list of {Name}{Operator}{Value}\
+          \ where \r\n- {Name} is the name of the property. Multiple names (logial\
+          \ OR) can be entered pipe delimited, eg. \"(value1|value2)>10\" will filter\
+          \ items where value1 or value2 is greater than 10.\r\n- {Value} is the value\
+          \ used for filtering. Multiple values (logial OR) can be entered pipe delimited,\
+          \ eg. \"value@=foo|bar\" will filter items where value contains either \"\
+          foo\" or \"bar\".\r\n- {Operator} is one of the following operators:\r\n\
+          \r\n| Operator | Name |\r\n|-|---|\r\n| == | Equals | \r\n| != | Not equal\
+          \ | \r\n| > | Greater than | \r\n| < | Less than | \r\n| >= | Greater than\
+          \ or equal to | \r\n| <= | Less than or equal to | \r\n| @= | Contains |\
+          \ \r\n| _= | Starts with | \r\n| !@= | Does not contain | \r\n| !_= | Does\
+          \ not start with |"
+        in: query
+        name: Filters
+        schema:
+          type: string
+      - description: Sorts is a comma delimited ordered list of proprty names to sort
+          by. Prefix with "-" to sort descending.
+        in: query
+        name: Sorts
+        schema:
+          type: string
+      - description: Number of items per page. Default no limit.
+        in: query
+        name: PageSize
+        schema:
+          type: string
+      - description: Number of page to return. Default 1.
+        in: query
+        name: Page
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns a list of available parameters to use with parameter sets.
+  /api-first-workbench/parameters/{name}:
+    get:
+      description: Retruns information on a specific parameter
+      operationId: get-parameters-name
+      parameters:
+      - description: The name of the parameter
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Retruns information on a specific parameter
+  /api-first-workbench/threshold:
+    get:
+      description: /threshold - get
+      operationId: get-threshold
+      parameters:
+      - description: "Filters is a comma-delimited list of {Name}{Operator}{Value}\
+          \ where \r\n- {Name} is the name of the property. Multiple names (logial\
+          \ OR) can be entered pipe delimited, eg. \"(value1|value2)>10\" will filter\
+          \ items where value1 or value2 is greater than 10.\r\n- {Value} is the value\
+          \ used for filtering. Multiple values (logial OR) can be entered pipe delimited,\
+          \ eg. \"value@=foo|bar\" will filter items where value contains either \"\
+          foo\" or \"bar\".\r\n- {Operator} is one of the following operators:\r\n\
+          \r\n| Operator | Name |\r\n|-|---|\r\n| == | Equals | \r\n| != | Not equal\
+          \ | \r\n| > | Greater than | \r\n| < | Less than | \r\n| >= | Greater than\
+          \ or equal to | \r\n| <= | Less than or equal to | \r\n| @= | Contains |\
+          \ \r\n| _= | Starts with | \r\n| !@= | Does not contain | \r\n| !_= | Does\
+          \ not start with |"
+        in: query
+        name: Filters
+        schema:
+          type: string
+      - description: Sorts is a comma delimited ordered list of proprty names to sort
+          by. Prefix with "-" to sort descending.
+        in: query
+        name: Sorts
+        schema:
+          type: string
+      - description: Number of items per page. Default no limit.
+        in: query
+        name: PageSize
+        schema:
+          type: string
+      - description: Number of page to return. Default 1.
+        in: query
+        name: Page
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: /threshold - get
+  /api-first-workbench/threshold/{id}:
+    get:
+      description: /threshold/{id} - get
+      operationId: get-threshold-id
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: format
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: /threshold/{id} - get
+  /api-first-workbench/unit-profiles:
+    get:
+      description: Retruns available unit profiles
+      operationId: get-unit-profiles
+      parameters:
+      - description: "Filters is a comma-delimited list of {Name}{Operator}{Value}\
+          \ where \r\n- {Name} is the name of the property. Multiple names (logial\
+          \ OR) can be entered pipe delimited, eg. \"(value1|value2)>10\" will filter\
+          \ items where value1 or value2 is greater than 10.\r\n- {Value} is the value\
+          \ used for filtering. Multiple values (logial OR) can be entered pipe delimited,\
+          \ eg. \"value@=foo|bar\" will filter items where value contains either \"\
+          foo\" or \"bar\".\r\n- {Operator} is one of the following operators:\r\n\
+          \r\n| Operator | Name |\r\n|-|---|\r\n| == | Equals | \r\n| != | Not equal\
+          \ | \r\n| > | Greater than | \r\n| < | Less than | \r\n| >= | Greater than\
+          \ or equal to | \r\n| <= | Less than or equal to | \r\n| @= | Contains |\
+          \ \r\n| _= | Starts with | \r\n| !@= | Does not contain | \r\n| !_= | Does\
+          \ not start with |"
+        in: query
+        name: Filters
+        schema:
+          type: string
+      - description: Sorts is a comma delimited ordered list of proprty names to sort
+          by. Prefix with "-" to sort descending.
+        in: query
+        name: Sorts
+        schema:
+          type: string
+      - description: Number of items per page. Default no limit.
+        in: query
+        name: PageSize
+        schema:
+          type: string
+      - description: Number of page to return. Default 1.
+        in: query
+        name: Page
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Retruns available unit profiles
+  /api-first-workbench/unit-profiles/{id}:
+    get:
+      description: Returns a specific unit profile
+      operationId: get-unit-profiles-id
+      parameters:
+      - description: The id of the unit profile
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns a specific unit profile
+  /api-first-workbench/units:
+    get:
+      description: Retruns available units
+      operationId: get-units
+      parameters:
+      - description: "Filters is a comma-delimited list of {Name}{Operator}{Value}\
+          \ where \r\n- {Name} is the name of the property. Multiple names (logial\
+          \ OR) can be entered pipe delimited, eg. \"(value1|value2)>10\" will filter\
+          \ items where value1 or value2 is greater than 10.\r\n- {Value} is the value\
+          \ used for filtering. Multiple values (logial OR) can be entered pipe delimited,\
+          \ eg. \"value@=foo|bar\" will filter items where value contains either \"\
+          foo\" or \"bar\".\r\n- {Operator} is one of the following operators:\r\n\
+          \r\n| Operator | Name |\r\n|-|---|\r\n| == | Equals | \r\n| != | Not equal\
+          \ | \r\n| > | Greater than | \r\n| < | Less than | \r\n| >= | Greater than\
+          \ or equal to | \r\n| <= | Less than or equal to | \r\n| @= | Contains |\
+          \ \r\n| _= | Starts with | \r\n| !@= | Does not contain | \r\n| !_= | Does\
+          \ not start with |"
+        in: query
+        name: Filters
+        schema:
+          type: string
+      - description: Sorts is a comma delimited ordered list of proprty names to sort
+          by. Prefix with "-" to sort descending.
+        in: query
+        name: Sorts
+        schema:
+          type: string
+      - description: Number of items per page. Default no limit.
+        in: query
+        name: PageSize
+        schema:
+          type: string
+      - description: Number of page to return. Default 1.
+        in: query
+        name: Page
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Retruns available units
+  /api-first-workbench/units/{name}:
+    get:
+      description: Returns a specific unit
+      operationId: get-units-name
+      parameters:
+      - description: The name of the unit
+        in: path
+        name: name
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns a specific unit
 security:
-- bearerAuth: []
-- apiKey: []
+- apiKeyHeader: []
+- apiKeyQuery: []
 servers:
-- description: Development environment
-  url: https://api-dev.gateway.equinor.com/api-first-workbench
-tags:
-- description: 'Endpoints which are introduces in the current version
-
-    '
-  name: New endpoints
-- description: "Endpoints which have been modified in the current version    \n"
-  name: Modified endpoints
-- description: 'Calendar represent a date range to perform time writing for based
-    on expecations in the work scehdule
-
-    '
-  name: Calendar
-- description: 'Time entry represent hours registered on a specific day towards a
-    cost object
-
-    '
-  name: Time entries
-- description: 'Cost object represent how the cost for each time entry is allocated
-
-    '
-  name: Cost objects
-x-tagGroups:
-- name: Changes in 1.0.1
-  tags:
-  - New endpoints
-  - Modified endpoints
-- name: Calendar
-  tags:
-  - Calendar
-- name: Time entries
-  tags:
-  - Time entries
-- name: Cost objects
-  tags:
-  - Cost objects
+- url: https://api-dev.gateway.equinor.com/stormgeo/v1
+- url: https://api-ncc-dev.gateway.equinor.com/stormgeo/v1
