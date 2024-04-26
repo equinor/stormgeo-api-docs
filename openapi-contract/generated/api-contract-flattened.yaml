@@ -745,7 +745,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/'
-  title: Timewriting API
+  title: StormGeo API
   version: 1.0.1
   x-logo:
     altText: Maintenance API logo
