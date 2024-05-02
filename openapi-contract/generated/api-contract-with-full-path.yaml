@@ -430,40 +430,54 @@ info:
     can be done via the Keyvault:
 
 
-    1. Navigate to the Keyvault service in Azure and press the *Generate/Import* button<br/>![certificate
-    create button](img/keyvault-overview.png)
+    1. Navigate to the *Keyvault* service in Azure. Select the *Certificates* section
+    in the left hand menu and press the *Generate/Import* button<br/>![certificate
+    create button](https://github.com/equinor/stormgeo-api-docs/blob/main/openapi-contract/img/keyvault-overview.png?raw=true)
 
 
-    2. Fill out the fields, similar to this:<br/>![certificate create fields](img/certificate-create.png)
+    2. Fill out the fields, similar to this:<br/>![certificate create fields](https://github.com/equinor/stormgeo-api-docs/blob/main/openapi-contract/img/certificate-create.png?raw=true)<br/><br/>
+
+    Note the following:<br/>
+
+    **CertificateName:** Can be whatever you want.<br/>
+
+    **Subject:** Value is not taken into account when authenticating with a self-signed
+    certificate, but a good practice is to have it match the company name.<br/>
+
+    **Validity Period (in months):** Must not be more than 12 months - otherwise we
+    will reject your certificate.<br/>
+
+    **Content Type:** Can be either PKCS #12 or PEM. PEM is a simpler format and might
+    be easier to deal with.<br/>
+
+    **Lifetime Action Type:** Default choice is *Automatically renew at a given percentage
+    lifetime*. Make sure to change this to one of the notification options instead,
+    so that you can take neccessary steps to have the certificate renewed and send
+    us the new one.
 
 
-    3. Navigate to the certificate in the keyvault and press the *Download in CER
-    format*. Include the downloaded certificate in the ServiceNow request.
+    3. Navigate to the certificate in the keyvault, press the *Download in CER format*
+    button and include the downloaded certificate in the ServiceNow request.
 
 
-    4. Make sure to keep the private key of the certificate safe, prefferably in the
-    Keyvault itself. Also remember that it is the vendors responsibility to renew
-    the certificate in due time. We don''t accept certificates with a lifetime longer
-    than 1 year.
+    4. Make sure to keep the private key (part of the PFX/PEM-file) of the certificate
+    safe, prefferably in the Keyvault itself. Also remember that it is the vendors
+    responsibility to renew the certificate in due time. We don''t accept certificates
+    with a lifetime longer than 1 year.
 
 
     ## Authentication and Authorization Overview
 
     Use below details for the OAuth 2.0 authentication:
 
+    | Permission Type | Grant Type | Scope |
 
-    **Delegated permissions**<br/>
+    |-----------------|------------|-------|
 
-    **Scope:** api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast<br/>
+    | Delegated       | authorization_code | api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast
+    |
 
-    **Grant type:** "authorization_code"
-
-
-    **Application permissions**<br/>
-
-    **Scope:** bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default<br/>
-
-    **Grant type:** "client_credentials"
+    | Application     | client_credentials | bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default
 
 
     # Support
