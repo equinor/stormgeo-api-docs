@@ -36,12 +36,16 @@ info:
     
     4. Make sure to keep the private key (part of the PFX/PEM-file) of the certificate safe, prefferably in the Keyvault itself. Also remember that it is the vendors responsibility to renew the certificate in due time. We don't accept certificates with a lifetime longer than 1 year.
     
-    ## Authentication and Authorization Overview
+    # Authentication and Authorization Overview
     Use below details for the OAuth 2.0 authentication:
-    | Permission Type | Grant Type         | Scope                                                      |
-    |-----------------|--------------------|------------------------------------------------------------|
-    | Delegated       | authorization_code | api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast |
-    | Application     | client_credentials | bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default              |
+    
+    **Permission Type:** Delegated<br/>
+    **Grant Type:** authorization_code<br/>
+    **Scope:** api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast<br/>
+    
+    **Permission Type:** Application<br/>
+    **Grant Type:** client_credentials<br/>
+    **Scope:** bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default<br/>
     
     # Support
     Support is provided via the *#stormgeo-api-support* channel on Slack
