@@ -693,64 +693,132 @@ components:
       name: subscription-key
       type: apiKey
 info:
-  description: >+
-    The StormGeo API exposes functionality related to the weather of predefined
-    locations, or given coordinates. The API is available to Equinor employees,
-    and certain subcontractors. 
-
+  description: >
     # Introduction
-     The API is designed and built according to [Equinor's API strategy](https://github.com/equinor/api-strategy).
-    The API is documented in OpenAPI 3.0 format and follows REST principles.
+
+    The StormGeo API exposes functionality related to the weather of predefined
+    locations, or given coordinates. The API is available to Equinor users, and
+    certain vendors.
+
+
+    The API functions as a gateway to StormGeo's own weather API, creating a
+    unified way for Equinor users and vendors to access this resource.
 
 
     A simple way to test the API is through [Postman](https://www.postman.com/)
     which is accessible through AccessIT.
-     ## Data Sources
-    The API functions as a gateway to StormGeo's own weather API, creating a
-    unified way for Equinor employees and third parties to access this resource.
-     ## Authentication and Authorization Overview
-     The user executing the API requests will need to authenticate with OAuth 2.0 authorization code flow with Equinor Azure AD as the identity provider.<br><br> 
-     For application permissions there is an Equinor role for internal application access, and the possibility for external connections through a restricted version of the API.
-     # Client Setup
-     In order to call the StormGeo API, a client application needs to be configured with permission to call the StormGeo API on behalf of the logged in user in Equinor Azure AD, or have an application permission.
-
-    The following configuration steps needs to be performed for the initial
-    setup:
 
 
-    1. Create client app registration in Equinor Azure AD through
-    [portal.azure.com](https://portal.azure.com) for each environment of your
-    solution. This step requires the [Application Developer
+    # Getting access to the API
+
+    ## Equinor Users
+
+    In order to call the StormGeo API, a client application needs to be
+    configured with API permissions for the StormGeo API. This can be done by
+    performing the following steps:
+
+
+    1. Create a client app registration in [Equinors Azure
+    portal](https://portal.azure.com). This step requires the [Application
+    Developer
     role](https://accessit.equinor.com/Search/Search?term=Application+Developer+%28AZURE+ACTIVE+DIRECTORY%29)
     in Access IT. See Omnia documentation [Application Management in
     AAD](https://docs.omnia.equinor.com/governance/iam/App-General-Info/) for
     more information.
-      We recommend one client app registration pr client environment such as dev, qa and production.
-
-    1. Create client secrets for your client app registrations
-
-    1. Add an API permission for the app registrations towards the StormGeo API.
-    The following API names are used with application id in parenthesis:
-    Weatherforecast api prod (81707c90-2ec8-4b00-8447-5a5fbbceb3e8),
-    Weatherforecast api test (bad0664a-3c4b-4f42-a8de-d12d82ea586c), 
-
-    1. Trigger an authentication request through a http client (such as postman)
-    in order to trigger the consent process of the API permission
 
 
-    We recommend using Postman as a tool for experimenting with the API.
+    2. Add an API permission for the app registrations towards the [StormGeo API
+    prod (client ID =
+    81707c90-2ec8-4b00-8447-5a5fbbceb3e8)](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/81707c90-2ec8-4b00-8447-5a5fbbceb3e8/isMSAApp~/false).
+    There are two types of permissions that can be added to the app registration
+    in Azure:<br/><br/>**Delegated permission**: If you want to call the
+    StormGeo API on behalf of the signed-in user in Equinor Entra
+    ID.<br/><br/>**Application permission:** If you want to call the API without
+    a signed-in end user. Select the app role named Equinor.
+
+
+    3. Create a client secret for your client app registrations that can be used
+    for authenticating.
+
+
+    4. The last step is to get admin consent for your API access. For delegated
+    permissions this is done by triggering an authentication request, e.g via
+    Postman, which will trigger the consent process.<br/><br/>For application
+    permissions, see the [Omnia
+    docs](https://docs.omnia.equinor.com/governance/iam/App-Admin-Consent/) for
+    more information.<br/><br/>See [Authentication and Authorization Overview
+    section](#Authentication-and-Authorization-Overview) for information on how
+    to authenticate.
+
+
+    ## External vendors
+
+    We are in the process of setting up a ServiceNow request  that can be used
+    for requesting access for external vendors, where their Equinor contact
+    point can request access on their behalf. More info to come soon.
+
+
+    For every venor we will setup a an app registration in Equinors Azure tenant
+    and provide the vendor with the client ID. In addition to the client ID, the
+    vendor will need to create a self-signed certificate (maximum 1 year
+    validity) that can be used for authentication, and provide us the public key
+    via the above mentioned ServiceNow request page.
+
+
+    There are several ways to generate a certificate. If you are using Azure
+    this can be done via the Keyvault:
+
+
+    1. Navigate to the Keyvault service in Azure and press the *Generate/Import*
+    button<br/>![certificate create button](img/keyvault-overview.png)
+
+
+    2. Fill out the fields, similar to this:<br/>![certificate create
+    fields](img/certificate-create.png)
+
+
+    3. Navigate to the certificate in the keyvault and press the *Download in
+    CER format*. Include the downloaded certificate in the ServiceNow request.
+
+
+    4. Make sure to keep the private key of the certificate safe, prefferably in
+    the Keyvault itself. Also remember that it is the vendors responsibility to
+    renew the certificate in due time. We don't accept certificates with a
+    lifetime longer than 1 year.
+
+
+    ## Authentication and Authorization Overview
+
+    Use below details for the OAuth 2.0 authentication:
+
+
+    **Delegated permissions**<br/>
+
+    **Scope:** api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast<br/>
+
+    **Grant type:** "authorization_code"
+
+
+    **Application permissions**<br/>
+
+    **Scope:** bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default<br/>
+
+    **Grant type:** "client_credentials"
+
+
+    # Support
+
+    Support is provided via the *#stormgeo-api-support* channel on Slack
 
 
     ## HTTP Response codes
 
     HTTP response codes will follow established best practice for REST services
-    and will be documented in the OpenAPI specification. 
+    and will be documented in the OpenAPI specification.
 
 
     Below is a list of status codes used in the API which the client should
-    handle. 
-
-    Common: 
+    handle. Common:
 
     * 400 Bad Request - The request is invalid. For example missing parameters
     in the query string
@@ -767,7 +835,6 @@ info:
     Read - HTTP GET:
 
     * 200 OK - The request completed successfully
-
   title: StormGeo
   version: v1
 openapi: 3.0.1
