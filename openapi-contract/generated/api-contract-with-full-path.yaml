@@ -457,18 +457,23 @@ info:
     with a lifetime longer than 1 year.
 
 
-    ## Authentication and Authorization Overview
+    # Authentication and Authorization Overview
 
     Use below details for the OAuth 2.0 authentication:
 
-    | Permission Type | Grant Type         | Scope                                                      |
 
-    |-----------------|--------------------|------------------------------------------------------------|
+    **Permission Type:** Delegated<br/>
 
-    | Delegated       | authorization_code | api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast
-    |
+    **Grant Type:** authorization_code<br/>
 
-    | Application     | client_credentials | bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default              |
+    **Scope:** api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast<br/>
+
+
+    **Permission Type:** Application<br/>
+
+    **Grant Type:** client_credentials<br/>
+
+    **Scope:** bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default<br/>
 
 
     # Support
