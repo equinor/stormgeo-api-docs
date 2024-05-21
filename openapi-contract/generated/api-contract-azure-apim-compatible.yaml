@@ -352,15 +352,6 @@ components:
           nullable: true
           type: object
       type: object
-  securitySchemes:
-    oauth:
-      description: Uses OAuth 2.0 for access control
-      flows:
-        clientCredentials:
-          scopes:
-            81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default: Default scope to use
-          tokenUrl: https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/oauth2/v2.0/token
-      type: oauth2
 info:
   description: '# Introduction
 
@@ -1493,8 +1484,5 @@ paths:
         '403':
           description: Forbidden
       summary: Returns a specific unit
-security:
-- oauth:
-  - 81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default
 servers:
 - url: https://api.gateway.equinor.com/stormgeo/v1
