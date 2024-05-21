@@ -1329,14 +1329,3 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-  securitySchemes:
-    oauth:
-      type: oauth2
-      description: Uses OAuth 2.0 for access control
-      flows:
-        clientCredentials: 
-          tokenUrl: https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/oauth2/v2.0/token
-          scopes:
-            81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default: Default scope to use
-security:
-  - oauth: [81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default]
