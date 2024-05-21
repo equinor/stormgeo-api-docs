@@ -353,14 +353,14 @@ components:
           type: object
       type: object
   securitySchemes:
-    apiKeyHeader:
-      in: header
-      name: Ocp-Apim-Subscription-Key
-      type: apiKey
-    apiKeyQuery:
-      in: query
-      name: subscription-key
-      type: apiKey
+    oauth:
+      description: Uses OAuth 2.0 for access control
+      flows:
+        clientCredentials:
+          scopes:
+            81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default: Default scope to use
+          tokenUrl: https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/oauth2/v2.0/token
+      type: oauth2
 info:
   description: '# Introduction
 
@@ -466,14 +466,14 @@ info:
 
     **Grant Type:** authorization_code<br/>
 
-    **Scope:** api://bad0664a-3c4b-4f42-a8de-d12d82ea586c/weatherforecast<br/>
+    **Scope:** api://81707c90-2ec8-4b00-8447-5a5fbbceb3e8/weatherforecast<br/>
 
 
     **Permission Type:** Application<br/>
 
     **Grant Type:** client_credentials<br/>
 
-    **Scope:** bad0664a-3c4b-4f42-a8de-d12d82ea586c/.default<br/>
+    **Scope:** 81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default<br/>
 
 
     # Support
@@ -1530,7 +1530,7 @@ paths:
           description: Forbidden
       summary: Returns a specific unit
 security:
-- apiKeyHeader: []
-- apiKeyQuery: []
+- oauth:
+  - 81707c90-2ec8-4b00-8447-5a5fbbceb3e8/.default
 servers:
 - url: https://api.gateway.equinor.com/stormgeo/v1
