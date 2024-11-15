@@ -21,7 +21,7 @@ jobs:
 
       # first checkout your code
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       
       # Install tool to add code snippets
       - name: Install snippet-enricher-cli
@@ -36,16 +36,16 @@ jobs:
         with:
           args: 'bundle openapi-with-code-examples.json -o index.html -t openapi-contract/redoc-template/redoc-template.hbs --options.requiredPropsFirst=true --options.jsonSampleExpandLevel=3 --options.theme.spacing.sectionVertical=10 --options.theme.typography.fontFamily=Equinor,Roboto,sans-serif --options.theme.colors.primary.main=#007079'
       - name: Upload redoc index.html file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: redoc-index
           path: index.html
         #Checkout gh-pages-source branch in order to update github pages
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           ref: gh-pages-source 
       - name: Download redoc index.html file
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: redoc-index
       - name: Get branch environment variable
