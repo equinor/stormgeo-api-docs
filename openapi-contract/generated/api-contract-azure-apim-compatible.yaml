@@ -405,16 +405,17 @@ info:
 
     ## External vendors
 
-    We are in the process of setting up a ServiceNow request  that can be used for
-    requesting access for external vendors, where their Equinor contact point can
-    request access on their behalf. More info to come soon.
+    External vendors need to have their Equinor contact person request access via
+    [this](https://equinor.service-now.com/selfservice?id=sc_cat_item&table=sc_cat_item&sys_id=99b2610ac39b8a100090dadf05013171&searchTerm=Access%20to%20the%20StormGeo%20API)
+    ServiceNow form.
 
 
-    For every venor we will setup a an app registration in Equinors Azure tenant and
-    provide the vendor with the client ID. In addition to the client ID, the vendor
+    For every vendor we will setup a an app registration in Equinors Azure tenant
+    and provide the vendor with the client ID. In addition to the client ID, the vendor
     will need to create a self-signed certificate (maximum 1 year validity) that can
     be used for authentication, and provide us the public key via the above mentioned
-    ServiceNow request page.
+    ServiceNow request. The same [ServiceNow request form](https://equinor.service-now.com/selfservice?id=sc_cat_item&table=sc_cat_item&sys_id=99b2610ac39b8a100090dadf05013171&searchTerm=Access%20to%20the%20StormGeo%20API)
+    can also be used for renewal of certificate.
 
 
     There are several ways to generate a certificate. If you are using Azure this
@@ -838,7 +839,7 @@ paths:
       description: Returns  information on a specific location.
       operationId: get-locations-id
       parameters:
-      - description: Format - int32. Format - int32. The id of the location
+      - description: Format - int32. Format - int32. The id of the location.
         in: path
         name: id
         required: true
