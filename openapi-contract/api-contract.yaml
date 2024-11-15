@@ -151,7 +151,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: Format - int32. Format - int32. The id of the location
+          description: Format - int32. Format - int32. The id of the location.
           required: true
           schema:
             type: integer
