@@ -1393,7 +1393,7 @@ paths:
       description: Returns  information on a specific location.
       operationId: get-locations-id
       parameters:
-        - description: Format - int32. Format - int32. The id of the location
+        - description: Format - int32. Format - int32. The id of the location.
           in: path
           name: id
           required: true
