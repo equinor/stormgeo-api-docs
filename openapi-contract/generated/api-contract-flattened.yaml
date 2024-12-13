@@ -750,8 +750,8 @@ info:
     ServiceNow form.
 
 
-    Please note that no SLA is provided on this service from Equinor, hence it
-    cannot be used for critical applications.
+    **Please note that no SLA is provided on this service from Equinor, hence it
+    cannot be used for critical applications.**
 
 
     For every vendor we will setup a an app registration in Equinors Azure
