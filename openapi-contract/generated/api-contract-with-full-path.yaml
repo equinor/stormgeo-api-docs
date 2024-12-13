@@ -410,6 +410,10 @@ info:
     ServiceNow form.
 
 
+    Please note that no SLA is provided on this service from Equinor, hence it cannot
+    be used for critical applications.
+
+
     For every vendor we will setup a an app registration in Equinors Azure tenant
     and provide the vendor with the client ID. In addition to the client ID, the vendor
     will need to create a self-signed certificate (maximum 1 year validity) that can
