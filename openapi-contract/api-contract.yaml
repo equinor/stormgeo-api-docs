@@ -979,7 +979,7 @@ paths:
           description: Forbidden
   '/allowed-locations':
     get:
-      summary: Returns a list of locations for a specific vendor.
+      summary: Returns a list of locations for a specific vendor
       description: Returns a list of locations for a specific vendor
       responses:
         '200':
