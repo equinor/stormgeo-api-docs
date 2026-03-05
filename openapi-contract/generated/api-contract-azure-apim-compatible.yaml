@@ -551,7 +551,7 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
-      summary: Returns a list of locations for a specific vendor.
+      summary: Returns a list of locations for a specific vendor
   /forecasts:
     get:
       description: Returns all forecasts for a specific location.
