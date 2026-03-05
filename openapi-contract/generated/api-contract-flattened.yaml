@@ -1,5 +1,15 @@
 components:
   schemas:
+    Allowedlocations:
+      type: object
+      additionalProperties: false
+      properties:
+        Description:
+          nullable: false
+          type: string
+        LocationId:
+          format: int32
+          type: integer
     Forecast:
       type: object
       additionalProperties: false
@@ -850,6 +860,61 @@ info:
   version: v1
 openapi: 3.0.1
 paths:
+  /api-first-workbench/allowed-locations:
+    get:
+      description: Returns a list of locations for a specific vendor
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                vendorname:
+                  - Description: string
+                    LocationId: 0
+              schema:
+                type: array
+                additionalProperties: false
+                properties:
+                  Description:
+                    nullable: false
+                    type: string
+                  LocationId:
+                    format: int32
+                    type: integer
+            text/json:
+              example:
+                vendorname:
+                  - Description: string
+                    LocationId: 0
+              schema:
+                items: null
+                type: array
+                additionalProperties: false
+                properties: &ref_0
+                  Description:
+                    nullable: false
+                    type: string
+                  LocationId:
+                    format: int32
+                    type: integer
+            text/plain:
+              examples:
+                default:
+                  value:
+                    vendorname:
+                      - Description: string
+                        LocationId: 0
+              schema:
+                items: null
+                type: array
+                additionalProperties: false
+                properties: *ref_0
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns a list of locations for a specific vendor.
   /api-first-workbench/forecasts:
     get:
       description: Returns all forecasts for a specific location.
@@ -949,7 +1014,7 @@ paths:
                   type: string
                   units: {}
               schema:
-                items: &ref_0
+                items: &ref_1
                   additionalProperties: false
                   properties:
                     data:
@@ -982,7 +1047,7 @@ paths:
                 default:
                   value: null
               schema:
-                items: *ref_0
+                items: *ref_1
                 type: array
           description: Success
         '401':
@@ -1024,7 +1089,7 @@ paths:
                 status: 0
                 title: string
                 type: string
-              schema: &ref_1
+              schema: &ref_2
                 additionalProperties: {}
                 properties:
                   detail:
@@ -1048,7 +1113,7 @@ paths:
               examples:
                 default:
                   value: null
-              schema: *ref_1
+              schema: *ref_2
           description: Not Found
       summary: Returns all forecasts for a specific location.
       tags:
@@ -1155,12 +1220,12 @@ paths:
                 timeResolution: string
                 type: string
                 units: {}
-              schema: *ref_0
+              schema: *ref_1
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_0
+              schema: *ref_1
           description: Success
         '400':
           content:
@@ -1197,12 +1262,12 @@ paths:
                 status: 0
                 title: string
                 type: string
-              schema: *ref_1
+              schema: *ref_2
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_1
+              schema: *ref_2
           description: Bad Request
         '401':
           description: Unauthorized
@@ -1243,12 +1308,12 @@ paths:
                 status: 0
                 title: string
                 type: string
-              schema: *ref_1
+              schema: *ref_2
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_1
+              schema: *ref_2
           description: Not Found
       summary: Returns all forecasts for a specific location.
       tags:
@@ -1344,7 +1409,7 @@ paths:
                   timeResolution: string
                   timeZone: string
               schema:
-                items: &ref_2
+                items: &ref_3
                   additionalProperties: false
                   properties:
                     customerId:
@@ -1382,7 +1447,7 @@ paths:
                 default:
                   value: null
               schema:
-                items: *ref_2
+                items: *ref_3
                 type: array
           description: Success
         '401':
@@ -1461,12 +1526,12 @@ paths:
                 name: string
                 timeResolution: string
                 timeZone: string
-              schema: *ref_2
+              schema: *ref_3
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_2
+              schema: *ref_3
           description: Success
         '401':
           description: Unauthorized
@@ -1507,12 +1572,12 @@ paths:
                 status: 0
                 title: string
                 type: string
-              schema: *ref_1
+              schema: *ref_2
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_1
+              schema: *ref_2
           description: Not Found
       summary: Returns  information on a specific location.
       tags:
@@ -1609,14 +1674,14 @@ paths:
                   type: string
                   units: {}
               schema:
-                items: *ref_0
+                items: *ref_1
                 type: array
             text/plain:
               examples:
                 default:
                   value: null
               schema:
-                items: *ref_0
+                items: *ref_1
                 type: array
           description: Success
         '401':
@@ -1658,12 +1723,12 @@ paths:
                 status: 0
                 title: string
                 type: string
-              schema: *ref_1
+              schema: *ref_2
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_1
+              schema: *ref_2
           description: Not Found
       summary: Returns all forecasts for a specific location.
       tags:
@@ -1763,12 +1828,12 @@ paths:
                 timeResolution: string
                 type: string
                 units: {}
-              schema: *ref_0
+              schema: *ref_1
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_0
+              schema: *ref_1
           description: Success
         '401':
           description: Unauthorized
@@ -1809,12 +1874,12 @@ paths:
                 status: 0
                 title: string
                 type: string
-              schema: *ref_1
+              schema: *ref_2
             text/plain:
               examples:
                 default:
                   value: null
-              schema: *ref_1
+              schema: *ref_2
           description: Not Found
       summary: Returns a specific forecast for a specific location.
       tags:

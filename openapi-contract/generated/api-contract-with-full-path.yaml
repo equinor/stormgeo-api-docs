@@ -1,5 +1,15 @@
 components:
   schemas:
+    Allowedlocations:
+      additionalProperties: false
+      properties:
+        Description:
+          nullable: false
+          type: string
+        LocationId:
+          format: int32
+          type: integer
+      type: object
     Forecast:
       additionalProperties: false
       properties:
@@ -507,6 +517,47 @@ info:
   version: v1
 openapi: 3.0.1
 paths:
+  /api-first-workbench/allowed-locations:
+    get:
+      description: Returns a list of locations for a specific vendor
+      responses:
+        '200':
+          content:
+            application/json:
+              example:
+                vendorname:
+                - Description: string
+                  LocationId: 0
+              schema:
+                $ref: '#/components/schemas/Allowedlocations'
+                items: null
+                type: array
+            text/json:
+              example:
+                vendorname:
+                - Description: string
+                  LocationId: 0
+              schema:
+                $ref: '#/components/schemas/Allowedlocations'
+                items: null
+                type: array
+            text/plain:
+              examples:
+                default:
+                  value:
+                    vendorname:
+                    - Description: string
+                      LocationId: 0
+              schema:
+                $ref: '#/components/schemas/Allowedlocations'
+                items: null
+                type: array
+          description: Success
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      summary: Returns a list of locations for a specific vendor.
   /api-first-workbench/forecasts:
     get:
       description: Returns all forecasts for a specific location.
