@@ -915,6 +915,8 @@ paths:
         '403':
           description: Forbidden
       summary: Returns a list of locations for a specific vendor
+      tags:
+        - Locations
   /api-first-workbench/forecasts:
     get:
       description: Returns all forecasts for a specific location.
